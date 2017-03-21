@@ -41,6 +41,7 @@ namespace Il2CppInspector
                 throw new Exception($"ERROR: Metadata file supplied is not a supported version[{pMetadataHdr.version}].");
             }
 
+            // Strings literals
             var uiStringLiteralCount = pMetadataHdr.stringLiteralCount / MySizeOf(typeof(Il2CppStringLiteral));
             var stringDefs = ReadArray<Il2CppStringLiteral>(pMetadataHdr.stringLiteralOffset, uiStringLiteralCount);
             Strings = new string[stringDefs.Length];
@@ -50,23 +51,24 @@ namespace Il2CppInspector
                 Strings[idx] = System.Text.Encoding.UTF8.GetString(raw);
             }
 
+            // Images (.dll)
             var uiImageCount = pMetadataHdr.imagesCount / MySizeOf(typeof(Il2CppImageDefinition));
             Images = ReadArray<Il2CppImageDefinition>(pMetadataHdr.imagesOffset, uiImageCount);
 
-            //GetTypeDefFromIndex
+            // GetTypeDefFromIndex
             var uiNumTypes = pMetadataHdr.typeDefinitionsCount / MySizeOf(typeof(Il2CppTypeDefinition));
             Types = ReadArray<Il2CppTypeDefinition>(pMetadataHdr.typeDefinitionsOffset, uiNumTypes);
             
-            //GetMethodDefinition
+            // GetMethodDefinition
             Methods = ReadArray<Il2CppMethodDefinition>(pMetadataHdr.methodsOffset, pMetadataHdr.methodsCount / MySizeOf(typeof(Il2CppMethodDefinition)));
             
-            //GetParameterFromIndex
+            // GetParameterFromIndex
             parameterDefs = ReadArray<Il2CppParameterDefinition>(pMetadataHdr.parametersOffset, pMetadataHdr.parametersCount / MySizeOf(typeof(Il2CppParameterDefinition)));
             
-            //GetFieldDefFromIndex
+            // GetFieldDefFromIndex
             Fields = ReadArray<Il2CppFieldDefinition>(pMetadataHdr.fieldsOffset, pMetadataHdr.fieldsCount / MySizeOf(typeof(Il2CppFieldDefinition)));
 
-            //GetFieldDefaultFromIndex
+            // GetFieldDefaultFromIndex
             fieldDefaultValues = ReadArray<Il2CppFieldDefaultValue>(pMetadataHdr.fieldDefaultValuesOffset, pMetadataHdr.fieldDefaultValuesCount / MySizeOf(typeof(Il2CppFieldDefaultValue)));
         }
 
