@@ -15,12 +15,14 @@ namespace Il2CppInspector
         public Il2CppReader Code { get; }
         public Metadata Metadata { get; }
 
-        public Il2CppProcessor(Il2CppReader code, Metadata metadata) {
+        public Il2CppProcessor(Il2CppReader code, Metadata metadata)
+        {
             Code = code;
             Metadata = metadata;
         }
 
-        public static Il2CppProcessor LoadFromFile(string codeFile, string metadataFile) {
+        public static Il2CppProcessor LoadFromFile(string codeFile, string metadataFile)
+        {
             // Load the metadata file
             var metadata = new Metadata(new MemoryStream(File.ReadAllBytes(metadataFile)));
 
@@ -56,14 +58,17 @@ namespace Il2CppInspector
             return new Il2CppProcessor(il2cpp, metadata);
         }
 
-        public string GetTypeName(Il2CppType pType) {
+        public string GetTypeName(Il2CppType pType)
+        {
             string ret;
 
-            if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE) {
+            if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
+            {
                 Il2CppTypeDefinition klass = Metadata.Types[pType.data.klassIndex];
                 ret = Metadata.GetString(klass.nameIndex);
             }
-            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST) {
+            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
+            {
                 Il2CppGenericClass generic_class = Code.Image.ReadMappedObject<Il2CppGenericClass>(pType.data.generic_class);
                 Il2CppTypeDefinition pMainDef = Metadata.Types[generic_class.typeDefinitionIndex];
                 ret = Metadata.GetString(pMainDef.nameIndex);
@@ -77,18 +82,21 @@ namespace Il2CppInspector
                 }
                 ret += $"<{string.Join(", ", typeNames)}>";
             }
-            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_ARRAY) {
+            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_ARRAY)
+            {
                 Il2CppArrayType arrayType = Code.Image.ReadMappedObject<Il2CppArrayType>(pType.data.array);
                 var type = Code.Image.ReadMappedObject<Il2CppType>(arrayType.etype);
                 type.Init();
                 ret = $"{GetTypeName(type)}[]";
             }
-            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY) {
+            else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_SZARRAY)
+            {
                 var type = Code.Image.ReadMappedObject<Il2CppType>(pType.data.type);
                 type.Init();
                 ret = $"{GetTypeName(type)}[]";
             }
-            else {
+            else
+            {
                 if ((int)pType.type >= szTypeString.Length)
                     ret = "unknow";
                 else

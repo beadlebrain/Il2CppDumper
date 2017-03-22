@@ -46,9 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDumper.cs" />
     <Compile Include="Bin2Object\Attributes.cs" />
     <Compile Include="Bin2Object\Bin2Object.cs" />
-    <Compile Include="Il2CppDumper.cs" />
+    <Compile Include="ProtoDumper.cs" />
+    <Compile Include="PseudoCodeDumper.cs" />
     <Compile Include="Il2CppInspector\DefineConstants.cs" />
     <Compile Include="Il2CppInspector\ElfHeaders.cs" />
     <Compile Include="Il2CppInspector\ElfReader.cs" />

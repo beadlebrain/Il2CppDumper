@@ -39,10 +39,14 @@ namespace Il2CppDumper
             var il2cpp = Il2CppProcessor.LoadFromFile(imageFile, metaFile);
             if (il2cpp == null) Environment.Exit(1);
 
-            // Write output file
-            var dumper = new Il2CppDumper(il2cpp);
-            dumper.WriteStrings("strings.txt");
-            dumper.WriteFile("pseudo.cs");
+            // Write output files
+            var dumper = new PseudoCodeDumper(il2cpp);
+            dumper.DumpStrings("strings.txt");
+            dumper.DumpToFile("pseudo.cs");
+
+            // Write extracted protos
+            var protoDumper = new ProtoDumper(il2cpp);
+            protoDumper.DumpToFile("generated.proto");
         }
     }
 }
