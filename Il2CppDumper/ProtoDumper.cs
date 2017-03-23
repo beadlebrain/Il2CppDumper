@@ -2,11 +2,15 @@
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Il2CppDumper
 {
     public class ProtoDumper : BaseDumper
     {
+        private IEnumerable<Il2CppTypeDefinition> holoTypes;
+        private int enumIdx = -1;
+
         public ProtoDumper(Il2CppProcessor proc) : base(proc) { }
         
         public void DumpToFile(string outFile) {
@@ -14,17 +18,19 @@ namespace Il2CppDumper
                 this.WriteHeaders(writer);
 
                 // Find the enum type index
-                var enumIdx = FindTypeIndex("Enum");
+                enumIdx = FindTypeIndex("Enum");
 
-                var holo = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holoholo.Rpc")).Select(t => t);
+                holoTypes = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holoholo.Rpc")).Select(t => t);
 
-                var enums = holo.Where(t => t.parentIndex == enumIdx);
+                var enums = holoTypes.Where(t => t.parentIndex == enumIdx);
                 foreach (var enumObject in enums)
                 {
                     this.WriteEnum(writer, enumObject);
                 }
 
-                var messages = holo.Where(t => t.parentIndex != enumIdx);
+                writer.Write("\n");
+                
+                var messages = holoTypes.Where(t => t.parentIndex != enumIdx);
                 foreach (var typeDef in messages)
                 {
                     this.WriteType(writer, typeDef);
@@ -35,27 +41,32 @@ namespace Il2CppDumper
         internal void WriteHeaders(StreamWriter writer)
         {
             writer.Write("syntax = \"proto3\";\n");
-            writer.Write("package Holoholo.Rpc;\n\n");
+            writer.Write("package Holoholo.Rpc;\n");
         }
 
-        internal void WriteEnum(StreamWriter writer, Il2CppTypeDefinition typeDef)
+        internal void WriteEnum(StreamWriter writer, Il2CppTypeDefinition typeDef, string pad = "")
         {
-            writer.Write($"enum {metadata.GetTypeName(typeDef)}\n{{\n");
+            writer.Write("\n");
+            writer.Write(pad + $"enum {metadata.GetTypeName(typeDef)}\n");
+            writer.Write(pad + "{\n");
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart + 1; i < fieldEnd; ++i)
             {
                 var pField = metadata.Fields[i];
                 var defaultValue = this.GetDefaultValue(i);
-                writer.Write($"\t{metadata.GetString(pField.nameIndex)} = {defaultValue};\n");
+                writer.Write(pad + $"\t{metadata.GetString(pField.nameIndex)} = {defaultValue};\n");
             }
-            writer.Write("}\n\n");
+            writer.Write(pad + "}\n");
         }
 
-        internal void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef)
+        internal void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef, string pad = "")
         {
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) return;
+            var typesToDump = new List<Il2CppType>();
+            writer.Write("\n");
+            writer.Write(pad + $"message {metadata.GetTypeName(typeDef)}\n");
+            writer.Write(pad + "{\n");
 
-            writer.Write($"message {metadata.GetTypeName(typeDef)}\n{{\n");
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart; i < fieldEnd; ++i)
             {
@@ -70,10 +81,44 @@ namespace Il2CppDumper
                     var pType = il2cpp.Code.GetTypeFromTypeIndex(realField.typeIndex);
                     var realType = this.GetProtoType(il2cpp.GetTypeName(pType));
 
-                    writer.Write($"\t{realType} {this.ToSnakeCase(realName)} = {defaultValue};\n");
+                    writer.Write(pad + $"\t{realType} {this.ToSnakeCase(realName)} = {defaultValue};\n");
+
+                    if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
+                    {
+                        typesToDump.Add(pType);
+                    }
                 }
             }
-            writer.Write("}\n\n");
+            
+            foreach (var pType in typesToDump)
+            {
+                var realType = pType;
+                if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
+                {
+                    var generic = il2cpp.Code.Image.ReadMappedObject<Il2CppGenericClass>(realType.data.generic_class);
+                    var pInst = il2cpp.Code.Image.ReadMappedObject<Il2CppGenericInst>(generic.context.class_inst);
+                    var pointers = il2cpp.Code.Image.ReadMappedArray<uint>(pInst.type_argv, (int)pInst.type_argc);
+                    realType = il2cpp.Code.Image.ReadMappedObject<Il2CppType>(pointers[0]);
+                    realType.Init();
+                }
+                var subtypeDef = metadata.Types[realType.data.klassIndex];
+                if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
+                {
+                    if (!holoTypes.Any(t => t.nameIndex == subtypeDef.nameIndex))
+                    {
+                        if (subtypeDef.parentIndex == enumIdx)
+                        {
+                            this.WriteEnum(writer, subtypeDef, pad + "\t");
+                        }
+                        else
+                        {
+                            this.WriteType(writer, subtypeDef, pad + "\t");
+                        }
+                    }
+                }
+            }
+
+            writer.Write(pad + "}\n");
         }
 
         internal string GetProtoType(string typeName)
@@ -96,7 +141,7 @@ namespace Il2CppDumper
             }
             else if (typeName == "ulong")
             {
-                typeName = "uint64";
+                typeName = "fixed64"; // "uint64";
             }
             else if (typeName.StartsWith("FieldCodec`1"))
             {
