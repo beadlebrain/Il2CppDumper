@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Readers
 {
     internal class PEReader : FileFormatReader<PEReader>
     {

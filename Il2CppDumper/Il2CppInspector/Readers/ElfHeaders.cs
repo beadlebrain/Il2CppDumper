@@ -7,7 +7,7 @@
 
 using NoisyCowStudios.Bin2Object;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Readers
 {
 #pragma warning disable CS0649
     internal class elf_header

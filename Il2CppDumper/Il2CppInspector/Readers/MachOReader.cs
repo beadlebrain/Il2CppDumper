@@ -9,30 +9,23 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Readers
 {
-    internal class ElfReader : FileFormatReader<ElfReader>
+    internal class MachOReader : FileFormatReader<ElfReader>
     {
         private program_header_table[] program_table_element;
         private elf_header elf_header;
 
-        public ElfReader(Stream stream) : base(stream) { }
+        public MachOReader(Stream stream) : base(stream) { }
 
         public override string Arch {
             get {
-                switch (elf_header.e_machine) {
-                    case 0x03:
-                        return "x86";
-                    case 0x28:
-                        return "ARM";
-                    default:
-                        return "Unsupported";
-                }
+                return "ARM";
             }
         }
 
         protected override bool Init() {
-            elf_header = ReadObject<elf_header>();
+            var magic = ReadUInt32();
 
             if (elf_header.m_dwFormat != 0x464c457f) {
                 // Not an ELF file

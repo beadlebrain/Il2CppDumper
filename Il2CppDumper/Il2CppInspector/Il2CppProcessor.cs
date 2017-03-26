@@ -4,6 +4,7 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,7 +29,20 @@ namespace Il2CppInspector
 
             // Load the il2cpp code file (try ELF and PE)
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
-            IFileFormatReader stream = (IFileFormatReader) ElfReader.Load(memoryStream) ?? PEReader.Load(memoryStream);
+            IFileFormatReader stream = null;
+            if (codeFile.ToLower().EndsWith(".so"))
+            {
+                stream = (IFileFormatReader)ElfReader.Load(memoryStream);
+            }
+            else if (codeFile.ToLower().EndsWith(".dll"))
+            {
+                stream = (IFileFormatReader)PEReader.Load(memoryStream);
+            }
+            else
+            {
+                stream = (IFileFormatReader)MachOReader.Load(memoryStream);
+            }
+            
             if (stream == null) {
                 Console.Error.WriteLine("Unsupported executable file format");
                 return null;
