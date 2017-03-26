@@ -127,6 +127,17 @@ namespace Il2CppDumper
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
             {
                 var methodDef = metadata.Methods[i];
+
+                if (methodDef.methodIndex >= 0)
+                {
+                    var ptr = il2cpp.Code.PtrCodeRegistration.methodPointers[methodDef.methodIndex];
+                    writer.Write("\t\t// {0:x} - {1}\n", ptr, methodDef.methodIndex);
+                }
+                else
+                {
+                    writer.Write("\t\t// 0 - -1\n");
+                }
+
                 writer.Write("\t\t");
                 Il2CppType pReturnType = il2cpp.Code.GetTypeFromTypeIndex(methodDef.returnType);
                 if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_MEMBER_ACCESS_MASK) ==
