@@ -1,52 +1,62 @@
-﻿using Il2CppInspector;
+﻿using CommandLine;
+using Il2CppInspector;
+using NLog;
 using System;
 using System.IO;
 
 namespace Il2CppDumper
 {
+    internal class Options
+    {
+        [Option('m', "metadata", DefaultValue = "global-metadata.dat", HelpText = "Metadata file.")]
+        public string MetadataFile { get; set; }
+
+        [Option('b', "binary", DefaultValue = "libil2cpp.so", HelpText = "Binary file.")]
+        public string BinaryFile { get; set; }
+    }
+
     class Program
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         static void Main(string[] args)
         {
-            // Command-line usage: dotnet run [<binary-file> [<metadata-file> [<output-file>]]]
-            // Defaults to libil2cpp.so or GameAssembly.dll if binary file not specified
-            string imageFile = "libil2cpp.so";
-            string metaFile = "global-metadata.dat";
+            logger.Info("Starting Il2CppDumper...");
+            logger.Info("Current directory: {0}", Directory.GetCurrentDirectory());
 
-            if (args.Length == 0)
-                if (!File.Exists(imageFile))
-                    imageFile = "GameAssembly.dll";
-
-            if (args.Length >= 1)
-                imageFile = args[0];
-
-            if (args.Length >= 2)
-                metaFile = args[1];
+            var options = new Options();
+            CommandLine.Parser.Default.ParseArguments(args, options);
             
             // Check files
-            if (!File.Exists(imageFile))
+            if (!File.Exists(options.BinaryFile))
             {
-                Console.Error.WriteLine($"File {imageFile} does not exist");
+                logger.Error($"File {options.BinaryFile} does not exist. Exiting.");
                 Environment.Exit(1);
             }
-            if (!File.Exists(metaFile))
+            if (!File.Exists(options.MetadataFile))
             {
-                Console.Error.WriteLine($"File {metaFile} does not exist");
+                logger.Error($"File {options.MetadataFile} does not exist. Exiting.");
                 Environment.Exit(1);
             }
 
-            // Analyze data
-            var il2cpp = Il2CppProcessor.LoadFromFile(imageFile, metaFile);
-            if (il2cpp == null) Environment.Exit(1);
-
-            // Write output files
+            logger.Info("Load data from files...");
+            var il2cpp = Il2CppProcessor.LoadFromFile(options.BinaryFile, options.MetadataFile);
+            if (il2cpp == null)
+            {
+                logger.Error("Unable to load data from files, exiting.");
+                Environment.Exit(1);
+            }
+            
+            logger.Info("Writing pseudo code...");
             var dumper = new PseudoCodeDumper(il2cpp);
             dumper.DumpStrings("strings.txt");
             dumper.DumpToFile("pseudo.cs");
 
-            // Write extracted protos
+            logger.Info("Writing extracted protos...");
             var protoDumper = new ProtoDumper(il2cpp);
             protoDumper.DumpToFile("generated.proto");
+
+            logger.Info("Done.");
         }
     }
 }

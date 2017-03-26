@@ -5,16 +5,16 @@
     All rights reserved.
 */
 
+using NLog;
 using System;
 using System.IO;
 using System.Linq;
 
 namespace Il2CppInspector.Readers
 {
-    internal class MachOReader : FileFormatReader<ElfReader>
+    internal class MachOReader : FileFormatReader<MachOReader>
     {
-        private program_header_table[] program_table_element;
-        private elf_header elf_header;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public MachOReader(Stream stream) : base(stream) { }
 
@@ -27,60 +27,33 @@ namespace Il2CppInspector.Readers
         protected override bool Init() {
             var magic = ReadUInt32();
 
-            if (elf_header.m_dwFormat != 0x464c457f) {
-                // Not an ELF file
-                return false;
-            }
-            if (elf_header.m_arch == 2)//64
+            if (magic == MachOConstants.MH_MAGIC ||
+                magic == MachOConstants.MH_CIGAM ||
+                magic == MachOConstants.MH_MAGIC_64 ||
+                magic == MachOConstants.MH_CIGAM_64)
             {
-                // 64-bit not supported
-                return false;
+                // Macho O
+                return true;
             }
-            program_table_element = ReadArray<program_header_table>(elf_header.e_phoff, elf_header.e_phnum);
-            return true;
+
+            if (magic == MachOConstants.FAT_MAGIC || magic == MachOConstants.FAT_CIGAM)
+            {
+                // Fat MachO
+                return true;
+            }
+
+            logger.Debug("Invalid magic detected in MachO files: 0x{0}", magic.ToString("X"));
+
+            return false;
         }
 
         public override uint[] GetSearchLocations() {
-            // Find dynamic section
-            var dynamic = new elf_32_shdr();
-            var PT_DYNAMIC = program_table_element.First(x => x.p_type == 2u);
-            dynamic.sh_offset = PT_DYNAMIC.p_offset;
-            dynamic.sh_size = PT_DYNAMIC.p_filesz;
-
-            // We need GOT, INIT_ARRAY and INIT_ARRAYSZ
-            uint _GLOBAL_OFFSET_TABLE_ = 0;
-            var init_array = new elf_32_shdr();
-            Position = dynamic.sh_offset;
-            var dynamicend = dynamic.sh_offset + dynamic.sh_size;
-            while (Position < dynamicend) {
-                var tag = ReadInt32();
-                if (tag == 3) //DT_PLTGOT
-                {
-                    _GLOBAL_OFFSET_TABLE_ = ReadUInt32();
-                    continue;
-                }
-                else if (tag == 25) //DT_INIT_ARRAY
-                {
-                    init_array.sh_offset = MapVATR(ReadUInt32());
-                    continue;
-                }
-                else if (tag == 27) //DT_INIT_ARRAYSZ
-                {
-                    init_array.sh_size = ReadUInt32();
-                    continue;
-                }
-                Position += 4;
-            }
-            if (_GLOBAL_OFFSET_TABLE_ == 0)
-                throw new InvalidOperationException("Unable to get GLOBAL_OFFSET_TABLE from PT_DYNAMIC");
-            GlobalOffset = _GLOBAL_OFFSET_TABLE_;
-            return ReadArray<uint>(init_array.sh_offset, (int) init_array.sh_size / 4);
+            return null;
         }
 
         public override uint MapVATR(uint uiAddr)
         {
-            var program_header_table = program_table_element.First(x => uiAddr >= x.p_vaddr && uiAddr <= (x.p_vaddr + x.p_memsz));
-            return uiAddr - (program_header_table.p_vaddr - program_header_table.p_offset);
+            return 0;            
         }
     }
 }
