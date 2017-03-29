@@ -64,14 +64,17 @@ namespace Il2CppInspector
                 case "ARM":
                     il2cpp = new Il2CppReaderARM(stream);
                     break;
+                case "MachOARM":
+                    il2cpp = new Il2CppReaderMachOARM(stream);
+                    break;
                 default:
-                    Console.Error.WriteLine("Unsupported architecture");
+                    logger.Error("Unsupported architecture: {0}", stream.Arch);
                     return null;
             }
 
             // Find code and metadata regions
             if (!il2cpp.Load()) {
-                Console.Error.WriteLine("Could not process IL2CPP image");
+                logger.Error("Could not process IL2CPP image");
                 return null;
             }
 
