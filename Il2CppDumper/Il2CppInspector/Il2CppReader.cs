@@ -5,6 +5,8 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
+
 namespace Il2CppInspector
 {
     public abstract class Il2CppReader
@@ -29,14 +31,21 @@ namespace Il2CppInspector
         // Check all search locations
         public bool Load() {
             var addrs = Image.GetSearchLocations();
-            foreach (var loc in addrs)
-                if (loc != 0) {
-                    var (code, metadata) = Search(loc, Image.GlobalOffset);
-                    if (code != 0) {
-                        Configure(code, metadata);
-                        return true;
+            if (addrs != null)
+            {
+                foreach (var loc in addrs)
+                {
+                    if (loc != 0)
+                    {
+                        var (code, metadata) = Search(loc, Image.GlobalOffset);
+                        if (code != 0)
+                        {
+                            Configure(code, metadata);
+                            return true;
+                        }
                     }
                 }
+            }
             return false;
         }
 

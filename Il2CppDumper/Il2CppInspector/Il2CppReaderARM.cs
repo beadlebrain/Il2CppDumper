@@ -5,6 +5,7 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
 using System.Linq;
 
 namespace Il2CppInspector
@@ -41,18 +42,51 @@ namespace Il2CppInspector
             bytes = new byte[] { 0x2d, 0xe9, 0x00, 0x48, 0xeb, 0x46 };
             Image.Position = loc;
             buff = Image.ReadBytes(6);
-            if (!bytes.SequenceEqual(buff))
-                return (0, 0);
-            bytes = new byte[] { 0x00, 0x23, 0x00, 0x22, 0xbd, 0xe8, 0x00, 0x48 };
-            Image.Position += 0x10;
-            buff = Image.ReadBytes(8);
-            if (!bytes.SequenceEqual(buff))
-                return (0, 0);
-            Image.Position = loc + 6;
-            Image.Position = (Image.MapVATR(decodeMovImm32(Image.ReadBytes(8))) & 0xfffffffc) + 0x0e;
-            metadataRegistration = decodeMovImm32(Image.ReadBytes(8));
-            codeRegistration = decodeMovImm32(Image.ReadBytes(8));
-            return (codeRegistration, metadataRegistration);
+            if (bytes.SequenceEqual(buff))
+            {
+                bytes = new byte[] { 0x00, 0x23, 0x00, 0x22, 0xbd, 0xe8, 0x00, 0x48 };
+                Image.Position += 0x10;
+                buff = Image.ReadBytes(8);
+                if (bytes.SequenceEqual(buff))
+                {
+                    Image.Position = loc + 6;
+                    Image.Position = (Image.MapVATR(decodeMovImm32(Image.ReadBytes(8))) & 0xfffffffc) + 0x0e;
+                    metadataRegistration = decodeMovImm32(Image.ReadBytes(8));
+                    codeRegistration = decodeMovImm32(Image.ReadBytes(8));
+                    return (codeRegistration, metadataRegistration);
+                }
+            }
+
+            /// Not found, try alternate method (iOS for example)
+            bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
+            var i = loc - 1;
+            Image.Position = Image.MapVATR(i);
+            Image.Position += 4;
+            buff = Image.ReadBytes(2);
+            if (bytes.SequenceEqual(buff))
+            {
+                bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; //ADD R0, PC and ADD R1, PC
+                Image.Position += 12;
+                buff = Image.ReadBytes(4);
+                if (bytes.SequenceEqual(buff))
+                {
+                    Image.Position = Image.MapVATR(i) + 10;
+                    var subaddr = decodeMovImm32(Image.ReadBytes(8)) + i + 24u - 1u;
+                    var rsubaddr = Image.MapVATR(subaddr);
+                    Image.Position = rsubaddr;
+                    var ptr = decodeMovImm32(Image.ReadBytes(8)) + subaddr + 16u;
+                    Image.Position = Image.MapVATR(ptr);
+                    metadataRegistration = Image.ReadUInt32();
+                    Image.Position = rsubaddr + 8;
+                    buff = Image.ReadBytes(4);
+                    Image.Position = rsubaddr + 14;
+                    buff = buff.Concat(Image.ReadBytes(4)).ToArray();
+                    codeRegistration = decodeMovImm32(buff) + subaddr + 26u;
+                    return (codeRegistration, metadataRegistration);
+                }
+            }
+
+            return (0, 0);
         }
 
         private uint decodeMovImm32(byte[] asm) {

@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug Android</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{CD181F29-2DEF-4526-878A-2584A066A052}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -13,12 +13,12 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Android|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug Android\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,7 +32,23 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug iOS|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug iOS\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.4\lib\net45\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -49,26 +65,35 @@
     <Compile Include="BaseDumper.cs" />
     <Compile Include="Bin2Object\Attributes.cs" />
     <Compile Include="Bin2Object\Bin2Object.cs" />
+    <Compile Include="Il2CppInspector\Il2CppReaderARM.cs" />
+    <Compile Include="Il2CppInspector\Readers\MachOHeaders.cs" />
+    <Compile Include="Il2CppInspector\Readers\MachOReader.cs" />
     <Compile Include="ProtoDumper.cs" />
     <Compile Include="PseudoCodeDumper.cs" />
     <Compile Include="Il2CppInspector\DefineConstants.cs" />
-    <Compile Include="Il2CppInspector\ElfHeaders.cs" />
-    <Compile Include="Il2CppInspector\ElfReader.cs" />
-    <Compile Include="Il2CppInspector\FileFormatReader.cs" />
+    <Compile Include="Il2CppInspector\Readers\ElfHeaders.cs" />
+    <Compile Include="Il2CppInspector\Readers\ElfReader.cs" />
+    <Compile Include="Il2CppInspector\Readers\FileFormatReader.cs" />
     <Compile Include="Il2CppInspector\Il2CppClasses.cs" />
     <Compile Include="Il2CppInspector\Il2CppProcessor.cs" />
     <Compile Include="Il2CppInspector\Il2CppReader.cs" />
-    <Compile Include="Il2CppInspector\Il2CppReaderARM.cs" />
     <Compile Include="Il2CppInspector\Il2CppReaderX86.cs" />
     <Compile Include="Il2CppInspector\Metadata.cs" />
     <Compile Include="Il2CppInspector\MetadataClass.cs" />
-    <Compile Include="Il2CppInspector\PEHeaders.cs" />
-    <Compile Include="Il2CppInspector\PEReader.cs" />
+    <Compile Include="Il2CppInspector\Readers\PEHeaders.cs" />
+    <Compile Include="Il2CppInspector\Readers\PEReader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <None Include="NLog.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

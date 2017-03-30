@@ -4,6 +4,8 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +14,8 @@ namespace Il2CppInspector
 {
     public class Il2CppProcessor
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Il2CppReader Code { get; }
         public Metadata Metadata { get; }
 
@@ -28,9 +32,25 @@ namespace Il2CppInspector
 
             // Load the il2cpp code file (try ELF and PE)
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
-            IFileFormatReader stream = (IFileFormatReader) ElfReader.Load(memoryStream) ?? PEReader.Load(memoryStream);
+            IFileFormatReader stream = null;
+            if (codeFile.ToLower().EndsWith(".so"))
+            {
+                logger.Debug("Using ELF reader.");
+                stream = ElfReader.Load(memoryStream);
+            }
+            else if (codeFile.ToLower().EndsWith(".dll"))
+            {
+                logger.Debug("Using PE reader.");
+                stream = PEReader.Load(memoryStream);
+            }
+            else
+            {
+                logger.Debug("Using MachO reader.");
+                stream = MachOReader.Load(memoryStream);
+            }
+            
             if (stream == null) {
-                Console.Error.WriteLine("Unsupported executable file format");
+                logger.Error("Unsupported executable file format.");
                 return null;
             }
 
@@ -45,13 +65,13 @@ namespace Il2CppInspector
                     il2cpp = new Il2CppReaderARM(stream);
                     break;
                 default:
-                    Console.Error.WriteLine("Unsupported architecture");
+                    logger.Error("Unsupported architecture: {0}", stream.Arch);
                     return null;
             }
 
             // Find code and metadata regions
             if (!il2cpp.Load()) {
-                Console.Error.WriteLine("Could not process IL2CPP image");
+                logger.Error("Could not process IL2CPP image");
                 return null;
             }
 
