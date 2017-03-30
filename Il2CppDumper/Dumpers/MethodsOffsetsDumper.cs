@@ -20,16 +20,17 @@ namespace Il2CppDumper.Dumpers
                 foreach (var typeDef in metadata.Types)
                 {
                     if (typeDef.parentIndex != enumIdx)
+                    {
                         this.WriteType(writer, typeDef);
                     }
                 }
                 writer.Write("}\n\n");
             }
+        }
 
         private void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef)
         {
             
         }
-    }
     }
 }
