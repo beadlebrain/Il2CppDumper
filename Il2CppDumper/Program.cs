@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Il2CppDumper.Dumpers;
 using Il2CppInspector;
 using NLog;
 using System;
