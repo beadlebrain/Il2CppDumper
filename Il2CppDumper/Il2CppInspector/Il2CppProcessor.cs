@@ -64,9 +64,6 @@ namespace Il2CppInspector
                 case "ARM":
                     il2cpp = new Il2CppReaderARM(stream);
                     break;
-                case "MachOARM":
-                    il2cpp = new Il2CppReaderMachOARM(stream);
-                    break;
                 default:
                     logger.Error("Unsupported architecture: {0}", stream.Arch);
                     return null;

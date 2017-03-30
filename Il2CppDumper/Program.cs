@@ -17,11 +17,10 @@ namespace Il2CppDumper
 
     class Program
     {
-        private static Logger logger = LogManager.GetCurrentClassLogger();
-
         static void Main(string[] args)
         {
             NLog.LayoutRenderers.LayoutRenderer.Register("current-dir", (logEvent) => Directory.GetCurrentDirectory());
+            Logger logger = LogManager.GetCurrentClassLogger();
 
             logger.Info("Starting Il2CppDumper...");
             logger.Info("Current directory: {0}", Directory.GetCurrentDirectory());

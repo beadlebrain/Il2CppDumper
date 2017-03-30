@@ -4,6 +4,7 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
 using System.Linq;
 
 namespace Il2CppInspector

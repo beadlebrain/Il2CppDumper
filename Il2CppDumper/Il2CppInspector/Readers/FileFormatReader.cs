@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using NoisyCowStudios.Bin2Object;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Readers
 {
     public interface IFileFormatReader
     {
@@ -17,6 +17,7 @@ namespace Il2CppInspector
         string Arch { get; }
         uint GlobalOffset { get; }
         uint[] GetSearchLocations();
+        (uint, uint) Search(uint loc, uint globalOffset);
         U ReadMappedObject<U>(uint uiAddr) where U : new();
         U[] ReadMappedArray<U>(uint uiAddr, int count) where U : new();
         uint MapVATR(uint uiAddr);
@@ -54,7 +55,10 @@ namespace Il2CppInspector
 
         // Find search locations in the machine code for Il2Cpp data
         public virtual uint[] GetSearchLocations() => throw new NotImplementedException();
-        
+
+        // Find the actual PtrCodeRegistration and PtrMetadataRegistration
+        public virtual (uint, uint) Search(uint loc, uint globalOffset) => throw new NotImplementedException();
+
         // Map an RVA to an offset into the file image
         public virtual uint MapVATR(uint uiAddr) => throw new NotImplementedException();
 

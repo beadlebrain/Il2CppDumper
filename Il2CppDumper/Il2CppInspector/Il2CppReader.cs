@@ -5,6 +5,8 @@
     All rights reserved.
 */
 
+using Il2CppInspector.Readers;
+
 namespace Il2CppInspector
 {
     public abstract class Il2CppReader
