@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug Android</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{CD181F29-2DEF-4526-878A-2584A066A052}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -13,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Android|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -65,7 +65,7 @@
     <Compile Include="BaseDumper.cs" />
     <Compile Include="Bin2Object\Attributes.cs" />
     <Compile Include="Bin2Object\Bin2Object.cs" />
-    <Compile Include="Il2CppInspector\Il2CppReaderMachOARM.cs" />
+    <Compile Include="Il2CppInspector\Il2CppReaderARM.cs" />
     <Compile Include="Il2CppInspector\Readers\MachOHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\MachOReader.cs" />
     <Compile Include="ProtoDumper.cs" />
@@ -73,11 +73,10 @@
     <Compile Include="Il2CppInspector\DefineConstants.cs" />
     <Compile Include="Il2CppInspector\Readers\ElfHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\ElfReader.cs" />
-    <Compile Include="Il2CppInspector\FileFormatReader.cs" />
+    <Compile Include="Il2CppInspector\Readers\FileFormatReader.cs" />
     <Compile Include="Il2CppInspector\Il2CppClasses.cs" />
     <Compile Include="Il2CppInspector\Il2CppProcessor.cs" />
     <Compile Include="Il2CppInspector\Il2CppReader.cs" />
-    <Compile Include="Il2CppInspector\Il2CppReaderARM.cs" />
     <Compile Include="Il2CppInspector\Il2CppReaderX86.cs" />
     <Compile Include="Il2CppInspector\Metadata.cs" />
     <Compile Include="Il2CppInspector\MetadataClass.cs" />
