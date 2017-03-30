@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 
-namespace Il2CppDumper
+namespace Il2CppDumper.Dumpers
 {
     public class PseudoCodeDumper : BaseDumper
     {
@@ -20,7 +20,7 @@ namespace Il2CppDumper
             }
         }
 
-        public void DumpToFile(string outFile) {
+        public override void DumpToFile(string outFile) {
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
                 var enumIdx = this.FindTypeIndex("Enum");
 
@@ -81,6 +81,14 @@ namespace Il2CppDumper
             if (nameSpace.Length > 0) nameSpace += ".";
 
             writer.Write($"{nameSpace}{metadata.GetTypeName(typeDef)}");
+
+            // class implements an interface
+            if (typeDef.interfaces_count > 0)
+            {
+
+            }
+
+            // class extenss another type
             if (typeDef.parentIndex >= 0)
             {
                 var pType = il2cpp.Code.GetTypeFromTypeIndex(typeDef.parentIndex);
@@ -90,6 +98,7 @@ namespace Il2CppDumper
                     writer.Write($" extends {name}");
                 }
             }
+
             writer.Write("\n\t{\n");
 
             this.WriteFields(writer, typeDef);

@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Il2CppDumper.Dumpers;
 using Il2CppInspector;
 using NLog;
 using System;
@@ -51,6 +52,10 @@ namespace Il2CppDumper
             var dumper = new PseudoCodeDumper(il2cpp);
             dumper.DumpStrings("strings.txt");
             dumper.DumpToFile("pseudo.cs");
+
+            logger.Info("Writing methods offset");
+            var offsetDumper = new MethodsOffsetsDumper(il2cpp);
+            offsetDumper.DumpToFile("methods.offsets.json");
 
             logger.Info("Writing extracted protos...");
             var protoDumper = new ProtoDumper(il2cpp);
