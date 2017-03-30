@@ -65,6 +65,9 @@ namespace Il2CppDumper
                 logger.Error(ex);
             }
             logger.Info("Done.");
+
+            logger.Info("Press a key to terminate.");
+            Console.ReadKey();
         }
     }
 }

@@ -83,49 +83,7 @@ namespace Il2CppInspector.Readers
             GlobalOffset = _GLOBAL_OFFSET_TABLE_;
             return ReadArray<uint>(init_array.sh_offset, (int) init_array.sh_size / 4);
         }
-
-        public override (uint, uint) Search(uint loc, uint globalOffset)
-        {
-            // Assembly bytes to search for at start of each function
-            uint metadataRegistration, codeRegistration;
-
-            // ARM
-            var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
-            Position = loc;
-            var buff = ReadBytes(12);
-            if (bytes.SequenceEqual(buff))
-            {
-                Position = loc + 0x2c;
-                var subaddr = ReadUInt32() + globalOffset;
-                Position = subaddr + 0x28;
-                codeRegistration = ReadUInt32() + globalOffset;
-                Position = subaddr + 0x2C;
-                var ptr = ReadUInt32() + globalOffset;
-                Position = MapVATR(ptr);
-                metadataRegistration = ReadUInt32();
-                return (codeRegistration, metadataRegistration);
-            }
-
-            // ARMv7 Thumb (T1)
-            // http://liris.cnrs.fr/~mmrissa/lib/exe/fetch.php?media=armv7-a-r-manual.pdf - A8.8.106
-            // http://armconverter.com/hextoarm/
-            bytes = new byte[] { 0x2d, 0xe9, 0x00, 0x48, 0xeb, 0x46 };
-            Position = loc;
-            buff = ReadBytes(6);
-            if (!bytes.SequenceEqual(buff))
-                return (0, 0);
-            bytes = new byte[] { 0x00, 0x23, 0x00, 0x22, 0xbd, 0xe8, 0x00, 0x48 };
-            Position += 0x10;
-            buff = ReadBytes(8);
-            if (!bytes.SequenceEqual(buff))
-                return (0, 0);
-            Position = loc + 6;
-            Position = (MapVATR(decodeMovImm32(ReadBytes(8))) & 0xfffffffc) + 0x0e;
-            metadataRegistration = decodeMovImm32(ReadBytes(8));
-            codeRegistration = decodeMovImm32(ReadBytes(8));
-            return (codeRegistration, metadataRegistration);
-        }
-
+        
         public override uint MapVATR(uint uiAddr)
         {
             var program_header_table = program_table_element.First(x => uiAddr >= x.p_vaddr && uiAddr <= (x.p_vaddr + x.p_memsz));

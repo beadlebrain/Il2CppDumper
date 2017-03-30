@@ -57,10 +57,10 @@ namespace Il2CppInspector
                 }
             }
 
-            /// Not found, try alternate method (iOS for example)
+            // Not found, try alternate method that should work on iOS 32 bits
+            var locfix = loc - 1;
             bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
-            var i = loc - 1;
-            Image.Position = Image.MapVATR(i);
+            Image.Position = Image.MapVATR(locfix);
             Image.Position += 4;
             buff = Image.ReadBytes(2);
             if (bytes.SequenceEqual(buff))
@@ -70,8 +70,8 @@ namespace Il2CppInspector
                 buff = Image.ReadBytes(4);
                 if (bytes.SequenceEqual(buff))
                 {
-                    Image.Position = Image.MapVATR(i) + 10;
-                    var subaddr = decodeMovImm32(Image.ReadBytes(8)) + i + 24u - 1u;
+                    Image.Position = Image.MapVATR(locfix) + 10;
+                    var subaddr = decodeMovImm32(Image.ReadBytes(8)) + locfix + 24u - 1u;
                     var rsubaddr = Image.MapVATR(subaddr);
                     Image.Position = rsubaddr;
                     var ptr = decodeMovImm32(Image.ReadBytes(8)) + subaddr + 16u;
