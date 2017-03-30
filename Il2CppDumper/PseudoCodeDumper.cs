@@ -131,11 +131,11 @@ namespace Il2CppDumper
                 if (methodDef.methodIndex >= 0)
                 {
                     var ptr = il2cpp.Code.PtrCodeRegistration.methodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// {0:x} - {1}\n", ptr, methodDef.methodIndex);
+                    writer.Write("\t\t// {0:x}\n", ptr);
                 }
                 else
                 {
-                    writer.Write("\t\t// 0 - -1\n");
+                    writer.Write("\t\t// ?\n");
                 }
 
                 writer.Write("\t\t");

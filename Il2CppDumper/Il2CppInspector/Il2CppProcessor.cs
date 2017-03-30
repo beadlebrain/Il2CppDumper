@@ -65,13 +65,13 @@ namespace Il2CppInspector
                     il2cpp = new Il2CppReaderARM(stream);
                     break;
                 default:
-                    Console.Error.WriteLine("Unsupported architecture");
+                    logger.Error("Unsupported architecture: {0}", stream.Arch);
                     return null;
             }
 
             // Find code and metadata regions
             if (!il2cpp.Load()) {
-                Console.Error.WriteLine("Could not process IL2CPP image");
+                logger.Error("Could not process IL2CPP image");
                 return null;
             }
 

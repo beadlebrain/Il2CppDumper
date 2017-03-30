@@ -7,12 +7,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppDumper", "Il2CppDumpe
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
+		Debug Android|Any CPU = Debug Android|Any CPU
+		Debug iOS|Any CPU = Debug iOS|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug Android|Any CPU.ActiveCfg = Debug Android|Any CPU
+		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug Android|Any CPU.Build.0 = Debug Android|Any CPU
+		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug iOS|Any CPU.ActiveCfg = Debug iOS|Any CPU
+		{CD181F29-2DEF-4526-878A-2584A066A052}.Debug iOS|Any CPU.Build.0 = Debug iOS|Any CPU
 		{CD181F29-2DEF-4526-878A-2584A066A052}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD181F29-2DEF-4526-878A-2584A066A052}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

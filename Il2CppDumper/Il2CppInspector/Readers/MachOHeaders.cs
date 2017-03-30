@@ -20,4 +20,13 @@ namespace Il2CppInspector.Readers
         internal const uint FAT_MAGIC = 0xCAFEBABE;
         internal const uint FAT_CIGAM = 0xBEBAFECA;
     }
+
+    internal class MachoSection
+    {
+        public string section_name;
+        public uint address;
+        public uint size;
+        public uint offset;
+        public uint end;
+    }
 }
