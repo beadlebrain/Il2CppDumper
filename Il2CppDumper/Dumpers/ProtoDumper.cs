@@ -4,7 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Il2CppDumper
+namespace Il2CppDumper.Dumpers
 {
     public class ProtoDumper : BaseDumper
     {
@@ -13,7 +13,7 @@ namespace Il2CppDumper
 
         public ProtoDumper(Il2CppProcessor proc) : base(proc) { }
         
-        public void DumpToFile(string outFile) {
+        public override void DumpToFile(string outFile) {
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
                 this.WriteHeaders(writer);
 

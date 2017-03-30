@@ -6,9 +6,9 @@
 
 using Il2CppInspector.Readers;
 using NLog;
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Il2CppInspector
 {
@@ -73,6 +73,12 @@ namespace Il2CppInspector
             if (!il2cpp.Load()) {
                 logger.Error("Could not process IL2CPP image");
                 return null;
+            }
+
+            // fix method pointer in mach-o (always +1, don't know why)
+            if (stream is MachOReader)
+            {
+                il2cpp.PtrCodeRegistration.methodPointers = il2cpp.PtrCodeRegistration.methodPointers.Select(ptr => ptr - 1).ToArray();
             }
 
             return new Il2CppProcessor(il2cpp, metadata);

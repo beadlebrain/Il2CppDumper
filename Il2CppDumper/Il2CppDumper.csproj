@@ -62,14 +62,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseDumper.cs" />
+    <Compile Include="Dumpers\BaseDumper.cs" />
     <Compile Include="Bin2Object\Attributes.cs" />
     <Compile Include="Bin2Object\Bin2Object.cs" />
     <Compile Include="Il2CppInspector\Il2CppReaderARM.cs" />
+    <Compile Include="Dumpers\MethodsOffsetsDumper.cs" />
     <Compile Include="Il2CppInspector\Readers\MachOHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\MachOReader.cs" />
-    <Compile Include="ProtoDumper.cs" />
-    <Compile Include="PseudoCodeDumper.cs" />
+    <Compile Include="Dumpers\ProtoDumper.cs" />
+    <Compile Include="Dumpers\PseudoCodeDumper.cs" />
     <Compile Include="Il2CppInspector\DefineConstants.cs" />
     <Compile Include="Il2CppInspector\Readers\ElfHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\ElfReader.cs" />

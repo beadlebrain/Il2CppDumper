@@ -88,52 +88,7 @@ namespace Il2CppInspector.Readers
                 addrs.Add(MapVATR(addr) & 0xfffffffc);
             return addrs.ToArray();
         }
-
-        public override (uint, uint) Search(uint loc, uint globalOffset)
-        {
-            uint funcPtr, metadata, code;
-
-            // Variant 1
-
-            // Assembly bytes to search for at start of each function
-            var bytes = new byte[] { 0x6A, 0x00, 0x6A, 0x00, 0x68 };
-            Position = loc;
-            var buff = ReadBytes(5);
-            if (bytes.SequenceEqual(buff))
-            {
-                // Next 4 bytes are the function pointer being pushed onto the stack
-                funcPtr = ReadUInt32();
-
-                // Start of next instruction
-                if (ReadByte() != 0xB9)
-                    return (0, 0);
-
-                // Jump to Il2CppCodegenRegistration
-                Position = MapVATR(funcPtr) + 6;
-                metadata = ReadUInt32();
-                Position = MapVATR(funcPtr) + 11;
-                code = ReadUInt32();
-                return (code, metadata);
-            }
-
-            // Variant 2
-            bytes = new byte[] { 0x55, 0x89, 0xE5, 0x53, 0x83, 0xE4, 0xF0, 0x83, 0xEC, 0x20, 0xE8, 0x00, 0x00, 0x00, 0x00, 0x5B };
-            Position = loc;
-            buff = ReadBytes(16);
-            if (!bytes.SequenceEqual(buff))
-                return (0, 0);
-
-            Position += 8;
-            funcPtr = MapVATR(ReadUInt32() + globalOffset);
-            if (funcPtr > Stream.BaseStream.Length)
-                return (0, 0);
-            Position = funcPtr + 0x22;
-            metadata = ReadUInt32() + globalOffset;
-            Position = funcPtr + 0x2C;
-            code = ReadUInt32() + globalOffset;
-            return (code, metadata);
-        }
-
+        
         public override uint MapVATR(uint uiAddr) {
             if (uiAddr == 0) return 0;
 

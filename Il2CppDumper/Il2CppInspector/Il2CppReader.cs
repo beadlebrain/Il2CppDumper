@@ -29,7 +29,7 @@ namespace Il2CppInspector
         protected abstract (uint, uint) Search(uint loc, uint globalOffset);
 
         // Check all search locations
-        public bool Load() {
+        public virtual bool Load() {
             var addrs = Image.GetSearchLocations();
             if (addrs != null)
             {
@@ -49,7 +49,7 @@ namespace Il2CppInspector
             return false;
         }
 
-        private void Configure(uint codeRegistration, uint metadataRegistration) {
+        internal virtual void Configure(uint codeRegistration, uint metadataRegistration) {
             PtrCodeRegistration = Image.ReadMappedObject<Il2CppCodeRegistration>(codeRegistration);
             PtrMetadataRegistration = Image.ReadMappedObject<Il2CppMetadataRegistration>(metadataRegistration);
             PtrCodeRegistration.methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers,

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Il2CppDumper
+namespace Il2CppDumper.Dumpers
 {
-    public class BaseDumper
+    public abstract class BaseDumper
     {
         internal readonly Il2CppProcessor il2cpp;
         internal readonly Metadata metadata;
@@ -91,5 +91,7 @@ namespace Il2CppDumper
         {
             return string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
         }
+
+        public abstract void DumpToFile(string filename);
     }
 }

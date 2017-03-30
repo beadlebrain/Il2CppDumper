@@ -100,37 +100,7 @@ namespace Il2CppInspector.Readers
             var __mod_init_func = sections.First(x => x.section_name == "__mod_init_func");
             return ReadArray<uint>(__mod_init_func.offset, (int)__mod_init_func.size / 4);
         }
-
-        public override (uint, uint) Search(uint loc, uint globalOffset)
-        {
-            var i = loc - 1;
-            Position = MapVATR(i);
-            Position += 4;
-            var buff = ReadBytes(2);
-            if (FeatureBytes1.SequenceEqual(buff))
-            {
-                Position += 12;
-                buff = ReadBytes(4);
-                if (FeatureBytes2.SequenceEqual(buff))
-                {
-                    Position = MapVATR(i) + 10;
-                    var subaddr = decodeMov(ReadBytes(8)) + i + 24u - 1u;
-                    var rsubaddr = MapVATR(subaddr);
-                    Position = rsubaddr;
-                    var ptr = decodeMov(ReadBytes(8)) + subaddr + 16u;
-                    Position = MapVATR(ptr);
-                    var metadataRegistration = ReadUInt32();
-                    Position = rsubaddr + 8;
-                    buff = ReadBytes(4);
-                    Position = rsubaddr + 14;
-                    buff = buff.Concat(ReadBytes(4)).ToArray();
-                    var codeRegistration = decodeMov(buff) + subaddr + 26u;
-                    return (codeRegistration, metadataRegistration);
-                }
-            }
-            return (0, 0);
-        }
-
+        
         public override uint MapVATR(uint uiAddr)
         {
             var section = sections.First(x => uiAddr >= x.address && uiAddr <= x.end);
