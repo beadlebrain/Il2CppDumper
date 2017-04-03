@@ -6,12 +6,15 @@
 */
 
 using Il2CppInspector.Readers;
+using NLog;
 using System.Linq;
 
 namespace Il2CppInspector
 {
     internal class Il2CppReaderARM : Il2CppReader
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Il2CppReaderARM(IFileFormatReader stream) : base(stream) { }
 
         public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }

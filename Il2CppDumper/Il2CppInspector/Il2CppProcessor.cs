@@ -30,8 +30,9 @@ namespace Il2CppInspector
             // Load the metadata file
             var metadata = new Metadata(new MemoryStream(File.ReadAllBytes(metadataFile)));
 
-            // Load the il2cpp code file (try ELF and PE)
+            // Load the il2cpp code file (try ELF, PE and MachO)
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
+
             IFileFormatReader stream = null;
             if (codeFile.ToLower().EndsWith(".so"))
             {

@@ -1,9 +1,4 @@
-﻿/*
-    Copyright 2017 Perfare - https://github.com/Perfare/Il2CppDumper
-    Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
-
-    All rights reserved.
-*/
+﻿#pragma warning disable 0649
 
 using NoisyCowStudios.Bin2Object;
 
@@ -19,6 +14,10 @@ namespace Il2CppInspector.Readers
         
         internal const uint FAT_MAGIC = 0xCAFEBABE;
         internal const uint FAT_CIGAM = 0xBEBAFECA;
+
+        internal const uint CPU_TYPE_ARM = 12;
+        internal const uint CPU_ARCH_ABI64 = 0x1000000;
+        internal const uint CPU_TYPE_ARM64 = CPU_ARCH_ABI64 | CPU_TYPE_ARM;
     }
 
     internal class MachoSection
@@ -28,5 +27,14 @@ namespace Il2CppInspector.Readers
         public uint size;
         public uint offset;
         public uint end;
+    }
+
+    internal class FatArch
+    {
+        public uint cputype;
+        public uint cpusubtype;
+        public uint offset;
+        public uint size;
+        public uint align;
     }
 }

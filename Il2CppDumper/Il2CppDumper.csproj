@@ -83,6 +83,7 @@
     <Compile Include="Il2CppInspector\MetadataClass.cs" />
     <Compile Include="Il2CppInspector\Readers\PEHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\PEReader.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
