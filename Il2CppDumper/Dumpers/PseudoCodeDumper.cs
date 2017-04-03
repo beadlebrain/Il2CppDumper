@@ -148,7 +148,7 @@ namespace Il2CppDumper.Dumpers
                 }
 
                 writer.Write("\t\t");
-                Il2CppType pReturnType = il2cpp.Code.GetTypeFromTypeIndex(methodDef.returnType);
+                var pReturnType = il2cpp.Code.GetTypeFromTypeIndex(methodDef.returnType);
                 if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_MEMBER_ACCESS_MASK) ==
                     DefineConstants.METHOD_ATTRIBUTE_PRIVATE)
                     writer.Write("private ");

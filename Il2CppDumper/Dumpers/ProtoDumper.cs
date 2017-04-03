@@ -1,8 +1,7 @@
 ﻿using Il2CppInspector;
-using System.IO;
-using System.Text;
-using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Il2CppDumper.Dumpers
 {
@@ -67,6 +66,16 @@ namespace Il2CppDumper.Dumpers
             writer.Write(pad + $"message {metadata.GetTypeName(typeDef)}\n");
             writer.Write(pad + "{\n");
 
+            var methodsReturn = new Dictionary<string, Il2CppType>();
+            var methodEnd = typeDef.methodStart + typeDef.method_count;
+            for (int i = typeDef.methodStart; i < methodEnd; ++i)
+            {
+                var methodDef = metadata.Methods[i];
+                var name = metadata.GetString(methodDef.nameIndex);
+                var pReturnType = il2cpp.Code.GetTypeFromTypeIndex(methodDef.returnType);
+                methodsReturn[name] = pReturnType;
+            }
+
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart; i < fieldEnd; ++i)
             {
@@ -75,13 +84,13 @@ namespace Il2CppDumper.Dumpers
                 if (fieldName.EndsWith("FieldNumber"))
                 {
                     var realName = fieldName.Substring(0, fieldName.Length - "FieldNumber".Length);
-                    var defaultValue = this.GetDefaultValue(i);
+                    var protoIndex = this.GetDefaultValue(i);
 
-                    var realField = metadata.Fields[++i];
-                    var pType = il2cpp.Code.GetTypeFromTypeIndex(realField.typeIndex);
-                    var realType = this.GetProtoType(il2cpp.GetTypeName(pType));
+                    var getter = "get_" + realName;
+                    var pType = methodsReturn[getter];
+                    var realType = this.GetProtoType(il2cpp.GetTypeName(methodsReturn[getter]));
 
-                    writer.Write(pad + $"\t{realType} {this.ToSnakeCase(realName)} = {defaultValue};\n");
+                    writer.Write(pad + $"\t{realType} {this.ToSnakeCase(realName)} = {protoIndex};\n");
 
                     if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
                     {
@@ -146,6 +155,11 @@ namespace Il2CppDumper.Dumpers
             else if (typeName.StartsWith("FieldCodec`1"))
             {
                 typeName = typeName.Substring("FieldCodec`1".Length + 1, typeName.Length - "FieldCodec`1".Length - 2);
+                typeName = "repeated " + this.GetProtoType(typeName);
+            }
+            else if (typeName.StartsWith("RepeatedField`1"))
+            {
+                typeName = typeName.Substring("RepeatedField`1".Length + 1, typeName.Length - "RepeatedField`1".Length - 2);
                 typeName = "repeated " + this.GetProtoType(typeName);
             }
             return typeName;
