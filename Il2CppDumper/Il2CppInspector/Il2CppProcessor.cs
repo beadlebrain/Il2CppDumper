@@ -1,10 +1,12 @@
 ﻿/*
-    Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
-
-    All rights reserved.
+ *  Copyright 2017 niico - https://github.com/pogosandbox/Il2CppDumper 
+ *  Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
+ *
+ *  All rights reserved.
 */
 
 using Il2CppInspector.Readers;
+using Il2CppInspector.Structures;
 using NLog;
 using System.Collections.Generic;
 using System.IO;

@@ -1,4 +1,10 @@
-﻿#pragma warning disable 0649
+﻿/*
+ *  Copyright 2017 niico - https://github.com/pogosandbox/Il2CppDumper 
+ *
+ *  All rights reserved.
+*/
+
+#pragma warning disable 0649
 
 using NoisyCowStudios.Bin2Object;
 

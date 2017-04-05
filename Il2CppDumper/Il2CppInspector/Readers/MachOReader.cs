@@ -1,8 +1,7 @@
 ﻿/*
-    Copyright 2017 Perfare - https://github.com/Perfare/Il2CppDumper
-    Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
-
-    All rights reserved.
+ *  Copyright 2017 niico - https://github.com/pogosandbox/Il2CppDumper 
+ *
+ *  All rights reserved.
 */
 
 using NLog;
@@ -26,7 +25,30 @@ namespace Il2CppInspector.Readers
             }
         }
 
-        internal bool InitARM7()
+        private bool InitFat()
+        {
+            var options = Il2CppDumper.Options.GetOptions();
+            var nArch = ReadUInt32();
+            for (var i = 0; i < nArch; i++)
+            {
+                var fatArch = ReadObject<FatArch>();
+                if (options.Arm7 && fatArch.cputype == MachOConstants.CPU_TYPE_ARM)
+                {
+                    // reinit using the ARM macho segment
+                    Position = GlobalOffset = fatArch.offset;
+                    return Init();
+                }
+                else if (fatArch.cputype == MachOConstants.CPU_TYPE_ARM64)
+                {
+                    // reinit using the ARM64 macho segment
+                    Position = GlobalOffset = fatArch.offset;
+                    return Init();
+                }
+            }
+            return false;
+        }
+
+        private bool InitARM7()
         {
             Position += 12; //skip
             var ncmds = ReadUInt32();
@@ -62,26 +84,9 @@ namespace Il2CppInspector.Readers
             return true;
         }
 
-        internal bool InitFat()
+        private bool InitARM64()
         {
-            var options = Il2CppDumper.Options.GetOptions();
-            var nArch = ReadUInt32();
-            for (var i = 0; i < nArch; i++)
-            {
-                var fatArch = ReadObject<FatArch>();
-                if (options.Arm7 && fatArch.cputype == MachOConstants.CPU_TYPE_ARM)
-                {
-                    // reinit using the ARM macho segment
-                    Position = GlobalOffset = fatArch.offset;
-                    return Init();
-                }
-                else if (fatArch.cputype == MachOConstants.CPU_TYPE_ARM64)
-                {
-                    // reinit using the ARM64 macho segment
-                    Position = GlobalOffset = fatArch.offset;
-                    return Init();
-                }
-            }
+            logger.Warn("ARM64 not supported.");
             return false;
         }
 
@@ -105,8 +110,7 @@ namespace Il2CppInspector.Readers
             {
                 // Macho O ARM64
                 logger.Debug("Opening ARM64 binary");
-                logger.Warn("ARM64 not supported.");
-                return false;
+                return InitARM64();
             }
 
             if (magic == MachOConstants.FAT_MAGIC || magic == MachOConstants.FAT_CIGAM)

@@ -1,7 +1,8 @@
 ﻿/*
-    Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
-
-    All rights reserved.
+ *  Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
+ *  Copyright 2017 niico - https://github.com/pogosandbox/Il2CppDumper 
+ *
+ *  All rights reserved.
 */
 
 using System;
