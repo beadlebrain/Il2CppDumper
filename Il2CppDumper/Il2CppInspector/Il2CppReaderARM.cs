@@ -114,19 +114,22 @@ namespace Il2CppInspector
         protected override (uint, uint) Search(uint loc, uint globalOffset) {
             // Assembly bytes to search for at start of each function
             bool found = false;
-            uint metadataRegistration, codeRegistration;
+            uint codeRegistration, metadataRegistration;
 
             // ARM64 (should work on elf 64 bits)
+            logger.Debug("Search using SearchARM64 at 0x{0}...", loc.ToString("X"));
             (found, codeRegistration, metadataRegistration) = SearchARM64(loc, globalOffset);
-            if (found) return (metadataRegistration, codeRegistration);
+            if (found) return (codeRegistration, metadataRegistration);
 
             // ARMv7 (should work on elf Arm7)
+            logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
             (found, codeRegistration, metadataRegistration) = SearchARM7(loc, globalOffset);
-            if (found) return (metadataRegistration, codeRegistration);
+            if (found) return (codeRegistration, metadataRegistration);
 
             // Not found, try alternate method that should work on iOS arm7
+            logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
             (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset); 
-            if (found) return (metadataRegistration, codeRegistration);
+            if (found) return (codeRegistration, metadataRegistration);
 
             // iOS ARM64 ?
 
