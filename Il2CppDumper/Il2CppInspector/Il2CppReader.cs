@@ -6,6 +6,7 @@
 */
 
 using Il2CppInspector.Readers;
+using Il2CppInspector.Structures;
 using NLog;
 
 namespace Il2CppInspector

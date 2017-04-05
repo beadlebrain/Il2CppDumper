@@ -1,4 +1,5 @@
 ﻿using Il2CppInspector;
+using Il2CppInspector.Structures;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -50,15 +50,12 @@ namespace Il2CppInspector.Readers
 
         private bool InitARM7()
         {
-            Position += 12; //skip
-            var ncmds = ReadUInt32();
-            Position += 8; //skip
-            for (int i = 0; i < ncmds; i++)
+            var header = ReadObject<MachoHeader>();
+            for (int i = 0; i < header.ncmds; i++)
             {
                 var offset = Position;
-                var loadCommandType = ReadUInt32();
-                var command_size = ReadUInt32();
-                if (loadCommandType == 1) //SEGMENT
+                var loadCommand = ReadObject<MachoLoadCommand>();
+                if (loadCommand.cmd == MachOConstants.LC_SEGMENT)
                 {
                     var segment_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
                     if (segment_name == "__TEXT" || segment_name == "__DATA")
@@ -79,7 +76,7 @@ namespace Il2CppInspector.Readers
                         }
                     }
                 }
-                Position = offset + command_size; //skip
+                Position = offset + loadCommand.cmdsize; //skip
             }
             return true;
         }
@@ -87,6 +84,37 @@ namespace Il2CppInspector.Readers
         private bool InitARM64()
         {
             logger.Warn("ARM64 not supported.");
+            //return false;
+
+            var header = ReadObject<MachoHeader64>();
+            for (int i = 0; i < header.ncmds; i++)
+            {
+                var offset = Position;
+                var loadCommand = ReadObject<MachoLoadCommand>();
+                if (loadCommand.cmd == MachOConstants.LC_SEGMENT_64)
+                {
+                    var segment_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
+                    if (segment_name == "__TEXT" || segment_name == "__DATA")
+                    {
+                        Position += 40; //skip
+                        var number_of_sections = ReadUInt32();
+                        Position += 4; //skip
+                        for (int j = 0; j < number_of_sections; j++)
+                        {
+                            var section_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
+                            Position += 16;
+                            var address = ReadUInt64() + GlobalOffset;
+                            var size = ReadUInt64();
+                            var offset2 = ReadUInt32() + GlobalOffset;
+                            var end = address + size;
+                            sections.Add(new MachoSection() { section_name = section_name, address = address, size = size, offset = offset2, end = end });
+                            Position += 28;
+                        }
+                    }
+                }
+                Position = offset + loadCommand.cmdsize; //skip
+            }
+
             return false;
         }
 

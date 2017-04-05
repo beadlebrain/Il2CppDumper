@@ -1,7 +1,7 @@
 ﻿using Il2CppInspector;
 using System.IO;
-using System.Text;
 using System.Linq;
+using Il2CppInspector.Structures;
 
 namespace Il2CppDumper.Dumpers
 {
