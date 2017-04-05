@@ -114,7 +114,7 @@ namespace Il2CppDumper.Dumpers
                     realType.Init();
                 }
                 var subtypeDef = metadata.Types[realType.data.klassIndex];
-                if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
+                if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || realType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS)
                 {
                     if (!holoTypes.Any(t => t.nameIndex == subtypeDef.nameIndex))
                     {
@@ -167,6 +167,7 @@ namespace Il2CppDumper.Dumpers
             }
 
             // depending on field name, adjust type
+
             string[] uint64names = { "timeStamp", "page_timestamp", "game_master_timestamp", "asset_digest_timestamp", "cell_id", "s2_cell_id" };
             if (typeName == "fixed64" && uint64names.Contains(fieldName)) 
             {
