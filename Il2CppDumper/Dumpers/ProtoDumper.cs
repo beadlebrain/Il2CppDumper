@@ -89,9 +89,11 @@ namespace Il2CppDumper.Dumpers
 
                     var getter = "get_" + realName;
                     var pType = methodsReturn[getter];
-                    var realType = this.GetProtoType(il2cpp.GetTypeName(methodsReturn[getter]));
 
-                    writer.Write(pad + $"\t{realType} {this.ToSnakeCase(realName)} = {protoIndex};\n");
+                    realName = this.ToSnakeCase(realName);
+                    var realType = this.GetProtoType(il2cpp.GetTypeName(methodsReturn[getter]), realName);
+
+                    writer.Write(pad + $"\t{realType} {realName} = {protoIndex};\n");
 
                     if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
                     {
@@ -131,7 +133,7 @@ namespace Il2CppDumper.Dumpers
             writer.Write(pad + "}\n");
         }
 
-        internal string GetProtoType(string typeName)
+        internal string GetProtoType(string typeName, string fieldName)
         {
             if (typeName == "int")
             {
@@ -156,13 +158,27 @@ namespace Il2CppDumper.Dumpers
             else if (typeName.StartsWith("FieldCodec`1"))
             {
                 typeName = typeName.Substring("FieldCodec`1".Length + 1, typeName.Length - "FieldCodec`1".Length - 2);
-                typeName = "repeated " + this.GetProtoType(typeName);
+                typeName = "repeated " + this.GetProtoType(typeName, fieldName);
             }
             else if (typeName.StartsWith("RepeatedField`1"))
             {
                 typeName = typeName.Substring("RepeatedField`1".Length + 1, typeName.Length - "RepeatedField`1".Length - 2);
-                typeName = "repeated " + this.GetProtoType(typeName);
+                typeName = "repeated " + this.GetProtoType(typeName, fieldName);
             }
+
+            // depending on field name, adjust type
+            string[] uint64names = { "timeStamp", "page_timestamp", "game_master_timestamp", "asset_digest_timestamp", "cell_id", "s2_cell_id" };
+            if (typeName == "fixed64" && uint64names.Contains(fieldName)) 
+            {
+                typeName = "uint64";
+            }
+
+            string[] fixed32names = { "checksum" };
+            if (typeName == "uint32" && fixed32names.Contains(fieldName))
+            {
+                typeName = "fixed32";
+            }
+
             return typeName;
         }
     }

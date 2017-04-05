@@ -83,9 +83,6 @@ namespace Il2CppInspector.Readers
 
         private bool InitARM64()
         {
-            logger.Warn("ARM64 not supported.");
-            //return false;
-
             var header = ReadObject<MachoHeader64>();
             for (int i = 0; i < header.ncmds; i++)
             {
@@ -96,23 +93,23 @@ namespace Il2CppInspector.Readers
                     var segment_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
                     if (segment_name == "__TEXT" || segment_name == "__DATA")
                     {
-                        Position += 40; //skip
+                        Position += 40; // skip
                         var number_of_sections = ReadUInt32();
-                        Position += 4; //skip
+                        Position += 4; // skip
                         for (int j = 0; j < number_of_sections; j++)
                         {
                             var section_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
                             Position += 16;
-                            var address = ReadUInt64() + GlobalOffset;
-                            var size = ReadUInt64();
-                            var offset2 = ReadUInt32() + GlobalOffset;
+                            var address = (uint)(ReadUInt64() + GlobalOffset);
+                            var size = (uint)ReadUInt64();
+                            var offset2 = (uint)(ReadUInt32() + GlobalOffset);
                             var end = address + size;
                             sections.Add(new MachoSection() { section_name = section_name, address = address, size = size, offset = offset2, end = end });
                             Position += 28;
                         }
                     }
                 }
-                Position = offset + loadCommand.cmdsize; //skip
+                Position = offset + loadCommand.cmdsize; // skip
             }
 
             return false;
@@ -162,13 +159,6 @@ namespace Il2CppInspector.Readers
         {
             var section = sections.First(x => uiAddr >= x.address && uiAddr <= x.end);
             return GlobalOffset + uiAddr - (section.address - section.offset);
-        }
-
-        private uint decodeMov(byte[] asm)
-        {
-            var low = (ushort)(asm[2] + ((asm[3] & 0x70) << 4) + ((asm[1] & 0x04) << 9) + ((asm[0] & 0x0f) << 12));
-            var high = (ushort)(asm[6] + ((asm[7] & 0x70) << 4) + ((asm[5] & 0x04) << 9) + ((asm[4] & 0x0f) << 12));
-            return (uint)((high << 16) + low);
         }
     }
 }
