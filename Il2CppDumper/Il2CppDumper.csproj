@@ -75,14 +75,19 @@
     <Compile Include="Il2CppInspector\Readers\ElfHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\ElfReader.cs" />
     <Compile Include="Il2CppInspector\Readers\FileFormatReader.cs" />
-    <Compile Include="Il2CppInspector\Il2CppClasses.cs" />
+    <Compile Include="Il2CppInspector\Structures\Il2CppClasses.cs" />
+    <Compile Include="Il2CppInspector\Structures\MetadataClass.cs" />
+    <Compile Include="Il2CppInspector\Structures\v22\Il2CppClasses.cs" />
+    <Compile Include="Il2CppInspector\Structures\v22\MetadataClass.cs" />
+    <Compile Include="Il2CppInspector\Structures\v23\Il2CppClasses.cs" />
     <Compile Include="Il2CppInspector\Il2CppProcessor.cs" />
     <Compile Include="Il2CppInspector\Il2CppReader.cs" />
     <Compile Include="Il2CppInspector\Il2CppReaderX86.cs" />
     <Compile Include="Il2CppInspector\Metadata.cs" />
-    <Compile Include="Il2CppInspector\MetadataClass.cs" />
+    <Compile Include="Il2CppInspector\Structures\v23\MetadataClass.cs" />
     <Compile Include="Il2CppInspector\Readers\PEHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\PEReader.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

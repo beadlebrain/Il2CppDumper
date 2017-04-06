@@ -1,10 +1,12 @@
 ﻿/*
-    Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
-
-    All rights reserved.
+ *  Copyright 2017 niico - https://github.com/pogosandbox/Il2CppDumper 
+ *  Copyright 2017 Katy Coe - http://www.hearthcode.org - http://www.djkaty.com
+ *
+ *  All rights reserved.
 */
 
 using Il2CppInspector.Readers;
+using Il2CppInspector.Structures;
 using NLog;
 using System.Collections.Generic;
 using System.IO;
@@ -30,8 +32,9 @@ namespace Il2CppInspector
             // Load the metadata file
             var metadata = new Metadata(new MemoryStream(File.ReadAllBytes(metadataFile)));
 
-            // Load the il2cpp code file (try ELF and PE)
+            // Load the il2cpp code file (try ELF, PE and MachO)
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
+
             IFileFormatReader stream = null;
             if (codeFile.ToLower().EndsWith(".so"))
             {

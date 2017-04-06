@@ -6,11 +6,15 @@
 */
 
 using Il2CppInspector.Readers;
+using Il2CppInspector.Structures;
+using NLog;
 
 namespace Il2CppInspector
 {
     public abstract class Il2CppReader
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public IFileFormatReader Image { get; }
 
         protected Il2CppReader(IFileFormatReader stream) {
@@ -46,6 +50,7 @@ namespace Il2CppInspector
                     }
                 }
             }
+            logger.Error("Unable to find registrations");
             return false;
         }
 

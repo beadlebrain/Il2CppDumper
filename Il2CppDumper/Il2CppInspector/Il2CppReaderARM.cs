@@ -6,25 +6,28 @@
 */
 
 using Il2CppInspector.Readers;
+using NLog;
 using System.Linq;
 
 namespace Il2CppInspector
 {
     internal class Il2CppReaderARM : Il2CppReader
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public Il2CppReaderARM(IFileFormatReader stream) : base(stream) { }
 
         public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
 
-        protected override (uint, uint) Search(uint loc, uint globalOffset) {
-            // Assembly bytes to search for at start of each function
+        private (bool, uint, uint) SearchARM64(uint loc, uint globalOffset)
+        {
             uint metadataRegistration, codeRegistration;
 
-            // ARM
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
             Image.Position = loc;
             var buff = Image.ReadBytes(12);
-            if (bytes.SequenceEqual(buff)) {
+            if (bytes.SequenceEqual(buff))
+            {
                 Image.Position = loc + 0x2c;
                 var subaddr = Image.ReadUInt32() + globalOffset;
                 Image.Position = subaddr + 0x28;
@@ -33,15 +36,23 @@ namespace Il2CppInspector
                 var ptr = Image.ReadUInt32() + globalOffset;
                 Image.Position = Image.MapVATR(ptr);
                 metadataRegistration = Image.ReadUInt32();
-                return (codeRegistration, metadataRegistration);
+                return (true, codeRegistration, metadataRegistration);
             }
 
+            return (false, 0, 0);
+        }
+
+        private (bool, uint, uint) SearchARM7(uint loc, uint globalOffset)
+        {
             // ARMv7 Thumb (T1)
             // http://liris.cnrs.fr/~mmrissa/lib/exe/fetch.php?media=armv7-a-r-manual.pdf - A8.8.106
             // http://armconverter.com/hextoarm/
-            bytes = new byte[] { 0x2d, 0xe9, 0x00, 0x48, 0xeb, 0x46 };
+
+            uint metadataRegistration, codeRegistration;
+
+            var bytes = new byte[] { 0x2d, 0xe9, 0x00, 0x48, 0xeb, 0x46 };
             Image.Position = loc;
-            buff = Image.ReadBytes(6);
+            var buff = Image.ReadBytes(6);
             if (bytes.SequenceEqual(buff))
             {
                 bytes = new byte[] { 0x00, 0x23, 0x00, 0x22, 0xbd, 0xe8, 0x00, 0x48 };
@@ -53,16 +64,22 @@ namespace Il2CppInspector
                     Image.Position = (Image.MapVATR(decodeMovImm32(Image.ReadBytes(8))) & 0xfffffffc) + 0x0e;
                     metadataRegistration = decodeMovImm32(Image.ReadBytes(8));
                     codeRegistration = decodeMovImm32(Image.ReadBytes(8));
-                    return (codeRegistration, metadataRegistration);
+                    return (true, codeRegistration, metadataRegistration);
                 }
             }
 
-            // Not found, try alternate method that should work on iOS 32 bits
+            return (false, 0, 0);
+        }
+
+        private (bool, uint, uint) SearchAltARM7(uint loc, uint globalOffset)
+        {
+            uint metadataRegistration, codeRegistration;
+
             var locfix = loc - 1;
-            bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
+            var bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
             Image.Position = Image.MapVATR(locfix);
             Image.Position += 4;
-            buff = Image.ReadBytes(2);
+            var buff = Image.ReadBytes(2);
             if (bytes.SequenceEqual(buff))
             {
                 bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; //ADD R0, PC and ADD R1, PC
@@ -82,9 +99,39 @@ namespace Il2CppInspector
                     Image.Position = rsubaddr + 14;
                     buff = buff.Concat(Image.ReadBytes(4)).ToArray();
                     codeRegistration = decodeMovImm32(buff) + subaddr + 26u;
-                    return (codeRegistration, metadataRegistration);
+                    return (true, codeRegistration, metadataRegistration);
                 }
             }
+
+            return (false, 0, 0);
+        }
+
+        private (bool, uint, uint) SearchAltARM64(uint loc, uint globalOffset)
+        {
+            return (false, 0, 0);
+        }
+
+        protected override (uint, uint) Search(uint loc, uint globalOffset) {
+            // Assembly bytes to search for at start of each function
+            bool found = false;
+            uint codeRegistration, metadataRegistration;
+
+            // ARM64 (should work on elf 64 bits)
+            logger.Debug("Search using SearchARM64 at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchARM64(loc, globalOffset);
+            if (found) return (codeRegistration, metadataRegistration);
+
+            // ARMv7 (should work on elf Arm7)
+            logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchARM7(loc, globalOffset);
+            if (found) return (codeRegistration, metadataRegistration);
+
+            // Not found, try alternate method that should work on iOS arm7
+            logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset); 
+            if (found) return (codeRegistration, metadataRegistration);
+
+            // iOS ARM64 ?
 
             return (0, 0);
         }

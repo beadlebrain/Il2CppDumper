@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Structures.v22
 {
     public class Il2CppCodeRegistration
     {

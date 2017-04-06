@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Il2CppInspector
+namespace Il2CppInspector.Structures.v23
 {
 #pragma warning disable CS0649
     public class Il2CppGlobalMetadataHeader
@@ -68,6 +68,12 @@ namespace Il2CppInspector
         public int attributesInfoCount;
         public int attributeTypesOffset; // TypeIndex
         public int attributeTypesCount;
+        public int unresolvedVirtualCallParameterTypesOffset; // TypeIndex
+        public int unresolvedVirtualCallParameterTypesCount;
+        public int unresolvedVirtualCallParameterRangesOffset; // Il2CppRange
+        public int unresolvedVirtualCallParameterRangesCount;
+        public int windowsRuntimeTypeNamesOffset; // Il2CppWindowsRuntimeTypeNamePair
+        public int windowsRuntimeTypeNamesSize;
     }
 
     public class Il2CppImageDefinition

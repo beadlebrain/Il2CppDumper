@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NoisyCowStudios.Bin2Object;
+using Il2CppInspector.Structures;
 
 namespace Il2CppInspector
 {
