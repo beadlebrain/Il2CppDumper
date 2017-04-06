@@ -1,5 +1,4 @@
-﻿using CommandLine;
-using Il2CppDumper.Dumpers;
+﻿using Il2CppDumper.Dumpers;
 using Il2CppInspector;
 using NLog;
 using System;
@@ -23,24 +22,22 @@ namespace Il2CppDumper
             // Check files
             if (!File.Exists(options.BinaryFile))
             {
-                logger.Error($"File {options.BinaryFile} does not exist. Exiting.");
+                logger.Error($"File {options.BinaryFile} does not exist.");
             }
             else if (!File.Exists(options.MetadataFile))
             {
-                logger.Error($"File {options.MetadataFile} does not exist. Exiting.");
+                logger.Error($"File {options.MetadataFile} does not exist.");
             }
             else
             {
-                try
+                logger.Info("Load data from files...");
+                var il2cpp = Il2CppProcessor.LoadFromFile(options.BinaryFile, options.MetadataFile);
+                if (il2cpp == null)
                 {
-                    logger.Info("Load data from files...");
-                    var il2cpp = Il2CppProcessor.LoadFromFile(options.BinaryFile, options.MetadataFile);
-                    if (il2cpp == null)
-                    {
-                        logger.Error("Unable to load data from files, exiting.");
-                        Environment.Exit(1);
-                    }
-
+                    logger.Error("Unable to load data from files.");
+                }
+                else
+                {
                     logger.Info("Writing pseudo code...");
                     var dumper = new PseudoCodeDumper(il2cpp);
                     dumper.DumpStrings("strings.txt");
@@ -49,10 +46,6 @@ namespace Il2CppDumper
                     logger.Info("Writing extracted protos...");
                     var protoDumper = new ProtoDumper(il2cpp);
                     protoDumper.DumpToFile("generated.proto");
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex);
                 }
             }
             logger.Info("Done.");

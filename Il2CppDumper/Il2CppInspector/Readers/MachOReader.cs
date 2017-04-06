@@ -15,7 +15,7 @@ namespace Il2CppInspector.Readers
     internal class MachOReader : FileFormatReader<MachOReader>
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
-        internal List<MachoSection> sections = new List<MachoSection>();
+        internal List<MyMachoSection> sections = new List<MyMachoSection>();
 
         public MachOReader(Stream stream) : base(stream) { }
         
@@ -57,22 +57,20 @@ namespace Il2CppInspector.Readers
                 var loadCommand = ReadObject<MachoLoadCommand>();
                 if (loadCommand.cmd == MachOConstants.LC_SEGMENT)
                 {
-                    var segment_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
-                    if (segment_name == "__TEXT" || segment_name == "__DATA")
+                    var segment = ReadObject<MachosSegmentCommand>();
+                    if (segment.segname == "__TEXT" || segment.segname == "__DATA")
                     {
-                        Position += 24; //skip
-                        var number_of_sections = ReadUInt32();
-                        Position += 4; //skip
-                        for (int j = 0; j < number_of_sections; j++)
+                        for (int j = 0; j < segment.nsects; j++)
                         {
-                            var section_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
-                            Position += 16;
-                            var address = ReadUInt32() + GlobalOffset;
-                            var size = ReadUInt32();
-                            var offset2 = ReadUInt32() + GlobalOffset;
-                            var end = address + size;
-                            sections.Add(new MachoSection() { section_name = section_name, address = address, size = size, offset = offset2, end = end });
-                            Position += 24;
+                            var section = ReadObject<MachoSection>();
+                            sections.Add(new MyMachoSection() {
+                                name = section.sectname,
+                                address = section.addr + GlobalOffset,
+                                size = section.size,
+                                offset = section.offset + GlobalOffset,
+                                end = section.addr + GlobalOffset + section.size
+                            });
+
                         }
                     }
                 }
@@ -90,29 +88,27 @@ namespace Il2CppInspector.Readers
                 var loadCommand = ReadObject<MachoLoadCommand>();
                 if (loadCommand.cmd == MachOConstants.LC_SEGMENT_64)
                 {
-                    var segment_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
-                    if (segment_name == "__TEXT" || segment_name == "__DATA")
+                    var segment = ReadObject<MachosSegmentCommand64>();
+                    if (segment.segname == "__TEXT" || segment.segname == "__DATA")
                     {
-                        Position += 40; // skip
-                        var number_of_sections = ReadUInt32();
-                        Position += 4; // skip
-                        for (int j = 0; j < number_of_sections; j++)
+                        for (int j = 0; j < segment.nsects; j++)
                         {
-                            var section_name = System.Text.Encoding.UTF8.GetString(ReadBytes(16)).TrimEnd('\0');
-                            Position += 16;
-                            var address = (uint)(ReadUInt64() + GlobalOffset);
-                            var size = (uint)ReadUInt64();
-                            var offset2 = (uint)(ReadUInt32() + GlobalOffset);
-                            var end = address + size;
-                            sections.Add(new MachoSection() { section_name = section_name, address = address, size = size, offset = offset2, end = end });
-                            Position += 28;
+                            var section = ReadObject<MachoSection64>();
+                            sections.Add(new MyMachoSection()
+                            {
+                                name = section.sectname,
+                                address = (uint)(section.addr + GlobalOffset),
+                                size = (uint)section.size,
+                                offset = section.offset + GlobalOffset,
+                                end = (uint)(section.addr + GlobalOffset + section.size)
+                            });
+
                         }
                     }
                 }
-                Position = offset + loadCommand.cmdsize; // skip
+                Position = offset + loadCommand.cmdsize; //skip
             }
-
-            return false;
+            return true;
         }
 
         protected override bool Init() {
@@ -151,7 +147,7 @@ namespace Il2CppInspector.Readers
         }
 
         public override uint[] GetSearchLocations() {
-            var __mod_init_func = sections.First(x => x.section_name == "__mod_init_func");
+            var __mod_init_func = sections.First(x => x.name == "__mod_init_func");
             return ReadArray<uint>(__mod_init_func.offset, (int)__mod_init_func.size / 4);
         }
         

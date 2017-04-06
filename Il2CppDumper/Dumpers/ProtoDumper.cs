@@ -14,13 +14,13 @@ namespace Il2CppDumper.Dumpers
         public ProtoDumper(Il2CppProcessor proc) : base(proc) { }
         
         public override void DumpToFile(string outFile) {
+            // Find the enum type index
+            enumIdx = FindTypeIndex("Enum");
+            holoTypes = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holo" + "holo.Rpc")).Select(t => t);
+            if (holoTypes.Count() > 0) return;
+
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
                 this.WriteHeaders(writer);
-
-                // Find the enum type index
-                enumIdx = FindTypeIndex("Enum");
-
-                holoTypes = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holoholo.Rpc")).Select(t => t);
 
                 var enums = holoTypes.Where(t => t.parentIndex == enumIdx);
                 foreach (var enumObject in enums)
@@ -168,7 +168,7 @@ namespace Il2CppDumper.Dumpers
 
             // depending on field name, adjust type
 
-            string[] uint64names = { "timeStamp", "page_timestamp", "game_master_timestamp", "asset_digest_timestamp", "cell_id", "s2_cell_id" };
+            string[] uint64names = { "timeStamp", "timeStamp", "page_timestamp", "game_master_timestamp", "asset_digest_timestamp", "cell_id", "s2_cell_id" };
             if (typeName == "fixed64" && uint64names.Contains(fieldName)) 
             {
                 typeName = "uint64";
