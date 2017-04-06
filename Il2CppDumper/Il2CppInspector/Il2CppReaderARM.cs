@@ -19,10 +19,8 @@ namespace Il2CppInspector
 
         public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
 
-        private (bool, uint, uint) SearchARM64(uint loc, uint globalOffset)
+        private (bool, uint, uint) SearchARM(uint loc, uint globalOffset)
         {
-            uint metadataRegistration, codeRegistration;
-
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
             Image.Position = loc;
             var buff = Image.ReadBytes(12);
@@ -31,24 +29,22 @@ namespace Il2CppInspector
                 Image.Position = loc + 0x2c;
                 var subaddr = Image.ReadUInt32() + globalOffset;
                 Image.Position = subaddr + 0x28;
-                codeRegistration = Image.ReadUInt32() + globalOffset;
+                var codeRegistration = Image.ReadUInt32() + globalOffset;
                 Image.Position = subaddr + 0x2C;
                 var ptr = Image.ReadUInt32() + globalOffset;
                 Image.Position = Image.MapVATR(ptr);
-                metadataRegistration = Image.ReadUInt32();
+                var metadataRegistration = Image.ReadUInt32();
                 return (true, codeRegistration, metadataRegistration);
             }
 
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchARM7(uint loc, uint globalOffset)
+        private (bool, uint, uint) SearchARM7Thumb(uint loc, uint globalOffset)
         {
             // ARMv7 Thumb (T1)
             // http://liris.cnrs.fr/~mmrissa/lib/exe/fetch.php?media=armv7-a-r-manual.pdf - A8.8.106
             // http://armconverter.com/hextoarm/
-
-            uint metadataRegistration, codeRegistration;
 
             var bytes = new byte[] { 0x2d, 0xe9, 0x00, 0x48, 0xeb, 0x46 };
             Image.Position = loc;
@@ -62,8 +58,8 @@ namespace Il2CppInspector
                 {
                     Image.Position = loc + 6;
                     Image.Position = (Image.MapVATR(decodeMovImm32(Image.ReadBytes(8))) & 0xfffffffc) + 0x0e;
-                    metadataRegistration = decodeMovImm32(Image.ReadBytes(8));
-                    codeRegistration = decodeMovImm32(Image.ReadBytes(8));
+                    var metadataRegistration = decodeMovImm32(Image.ReadBytes(8));
+                    var codeRegistration = decodeMovImm32(Image.ReadBytes(8));
                     return (true, codeRegistration, metadataRegistration);
                 }
             }
@@ -73,8 +69,6 @@ namespace Il2CppInspector
 
         private (bool, uint, uint) SearchAltARM7(uint loc, uint globalOffset)
         {
-            uint metadataRegistration, codeRegistration;
-
             var locfix = loc - 1;
             var bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
             Image.Position = Image.MapVATR(locfix);
@@ -93,12 +87,12 @@ namespace Il2CppInspector
                     Image.Position = rsubaddr;
                     var ptr = decodeMovImm32(Image.ReadBytes(8)) + subaddr + 16u;
                     Image.Position = Image.MapVATR(ptr);
-                    metadataRegistration = Image.ReadUInt32();
+                    var metadataRegistration = Image.ReadUInt32();
                     Image.Position = rsubaddr + 8;
                     buff = Image.ReadBytes(4);
                     Image.Position = rsubaddr + 14;
                     buff = buff.Concat(Image.ReadBytes(4)).ToArray();
-                    codeRegistration = decodeMovImm32(buff) + subaddr + 26u;
+                    var codeRegistration = decodeMovImm32(buff) + subaddr + 26u;
                     return (true, codeRegistration, metadataRegistration);
                 }
             }
@@ -108,6 +102,8 @@ namespace Il2CppInspector
 
         private (bool, uint, uint) SearchAltARM64(uint loc, uint globalOffset)
         {
+
+
             return (false, 0, 0);
         }
 
@@ -116,14 +112,14 @@ namespace Il2CppInspector
             bool found = false;
             uint codeRegistration, metadataRegistration;
 
-            // ARM64 (should work on elf 64 bits)
-            logger.Debug("Search using SearchARM64 at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchARM64(loc, globalOffset);
+            // ARM (should work on elf)
+            logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
             if (found) return (codeRegistration, metadataRegistration);
 
-            // ARMv7 (should work on elf Arm7)
+            // ARMv7 thumb (should work on elf Arm7 thumb)
             logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchARM7(loc, globalOffset);
+            (found, codeRegistration, metadataRegistration) = SearchARM7Thumb(loc, globalOffset);
             if (found) return (codeRegistration, metadataRegistration);
 
             // Not found, try alternate method that should work on iOS arm7
