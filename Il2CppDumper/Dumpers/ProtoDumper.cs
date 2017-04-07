@@ -17,7 +17,7 @@ namespace Il2CppDumper.Dumpers
             // Find the enum type index
             enumIdx = FindTypeIndex("Enum");
             holoTypes = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holo" + "holo.Rpc")).Select(t => t);
-            if (holoTypes.Count() > 0) return;
+            if (holoTypes.Count() == 0) return;
 
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
                 this.WriteHeaders(writer);
