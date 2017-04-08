@@ -84,7 +84,9 @@ namespace Il2CppInspector
                     logger.Debug($"Pos: 0x{locfix.ToString("X")}");
                     Image.Position = Image.MapVATR(locfix) + 10;
                     logger.Debug($"Pos: 0x{Image.Position.ToString("X")}");
-                    var subaddr = decodeMovImm32(Image.ReadBytes(8)) + locfix + 24u - 1u;
+                    bytes = Image.ReadBytes(8);
+                    logger.Debug(System.BitConverter.ToString(bytes));
+                    var subaddr = decodeMovImm32(bytes) + locfix + 24u - 1u;
                     logger.Debug($"subaddr: 0x{subaddr.ToString("X")}");
                     var rsubaddr = Image.MapVATR(subaddr);
                     Image.Position = rsubaddr;
