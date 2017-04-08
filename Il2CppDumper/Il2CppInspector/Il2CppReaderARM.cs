@@ -19,7 +19,7 @@ namespace Il2CppInspector
 
         public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
 
-        private (bool, uint, uint) SearchARM(uint loc, uint globalOffset)
+        private (bool, long, long) SearchARM(long loc, long globalOffset)
         {
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
             Image.Position = loc;
@@ -40,7 +40,7 @@ namespace Il2CppInspector
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchARM7Thumb(uint loc, uint globalOffset)
+        private (bool, long, long) SearchARM7Thumb(long loc, long globalOffset)
         {
             // ARMv7 Thumb (T1)
             // http://liris.cnrs.fr/~mmrissa/lib/exe/fetch.php?media=armv7-a-r-manual.pdf - A8.8.106
@@ -67,7 +67,7 @@ namespace Il2CppInspector
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchAltARM7(uint loc, uint globalOffset)
+        private (bool, long, long) SearchAltARM7(long loc, long globalOffset)
         {
             var locfix = loc - 1;
             var bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
@@ -100,34 +100,42 @@ namespace Il2CppInspector
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchAltARM64(uint loc, uint globalOffset)
+        private (bool, long, long) SearchAltARM64(long loc, long globalOffset)
         {
 
 
             return (false, 0, 0);
         }
 
-        protected override (uint, uint) Search(uint loc, uint globalOffset) {
+        protected override (long, long) Search(long loc, long globalOffset) {
             // Assembly bytes to search for at start of each function
             bool found = false;
-            uint codeRegistration, metadataRegistration;
+            long codeRegistration, metadataRegistration;
 
-            // ARM (should work on elf)
-            logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
-            if (found) return (codeRegistration, metadataRegistration);
+            logger.Debug($"Loc 0x{loc.ToString("X")}");
 
-            // ARMv7 thumb (should work on elf Arm7 thumb)
-            logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchARM7Thumb(loc, globalOffset);
-            if (found) return (codeRegistration, metadataRegistration);
+            if (Image.Is64bits)
+            {
+                // iOS ARM64 ?
 
-            // Not found, try alternate method that should work on iOS arm7
-            logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset); 
-            if (found) return (codeRegistration, metadataRegistration);
+            }
+            else
+            {
+                // ARM (should work on elf)
+                logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
+                (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
+                if (found) return (codeRegistration, metadataRegistration);
 
-            // iOS ARM64 ?
+                // ARMv7 thumb (should work on elf Arm7 thumb)
+                logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
+                (found, codeRegistration, metadataRegistration) = SearchARM7Thumb(loc, globalOffset);
+                if (found) return (codeRegistration, metadataRegistration);
+
+                // Not found, try alternate method that should work on iOS arm7
+                logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
+                (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset);
+                if (found) return (codeRegistration, metadataRegistration);
+            }
 
             return (0, 0);
         }

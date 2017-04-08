@@ -8,6 +8,7 @@
 using Il2CppInspector.Readers;
 using Il2CppInspector.Structures;
 using NLog;
+using System.Linq;
 
 namespace Il2CppInspector
 {
@@ -30,7 +31,7 @@ namespace Il2CppInspector
         public Il2CppMetadataRegistration PtrMetadataRegistration { get; protected set; }
 
         // Architecture-specific search function
-        protected abstract (uint, uint) Search(uint loc, uint globalOffset);
+        protected abstract (long, long) Search(long loc, long globalOffset);
 
         // Check all search locations
         public virtual bool Load() {
@@ -54,14 +55,26 @@ namespace Il2CppInspector
             return false;
         }
 
-        internal virtual void Configure(uint codeRegistration, uint metadataRegistration) {
+        internal virtual void Configure(long codeRegistration, long metadataRegistration) {
             PtrCodeRegistration = Image.ReadMappedObject<Il2CppCodeRegistration>(codeRegistration);
             PtrMetadataRegistration = Image.ReadMappedObject<Il2CppMetadataRegistration>(metadataRegistration);
             PtrCodeRegistration.methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers,
                 (int) PtrCodeRegistration.methodPointersCount);
             PtrMetadataRegistration.fieldOffsets = Image.ReadMappedArray<int>(PtrMetadataRegistration.pfieldOffsets,
                 PtrMetadataRegistration.fieldOffsetsCount);
-            var types = Image.ReadMappedArray<uint>(PtrMetadataRegistration.ptypes, PtrMetadataRegistration.typesCount);
+
+            long[] types;
+            if (Image.Is64bits)
+            {
+                var ptrs = Image.ReadMappedArray<ulong>(PtrMetadataRegistration.ptypes, PtrMetadataRegistration.typesCount);
+                types = ptrs.Select(p => (long)p).ToArray();
+            }
+            else
+            {
+                var ptrs = Image.ReadMappedArray<uint>(PtrMetadataRegistration.ptypes, PtrMetadataRegistration.typesCount);
+                types = ptrs.Select(p => (long)p).ToArray();
+            }
+
             PtrMetadataRegistration.types = new Il2CppType[PtrMetadataRegistration.typesCount];
             for (int i = 0; i < PtrMetadataRegistration.typesCount; ++i) {
                 PtrMetadataRegistration.types[i] = Image.ReadMappedObject<Il2CppType>(types[i]);

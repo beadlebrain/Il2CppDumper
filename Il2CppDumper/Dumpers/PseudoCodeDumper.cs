@@ -82,11 +82,22 @@ namespace Il2CppDumper.Dumpers
 
             writer.Write($"{nameSpace}{metadata.GetTypeName(typeDef)}");
 
-            // class implements an interface
-            if (typeDef.interfaces_count > 0)
-            {
+            var yes = typeDef.vtable_count == typeDef.method_count;
+            yes.ToString();
 
-            }
+            // class implements an interface
+            //if (typeDef.interfaces_count > 0)
+            //{
+            //    var maxInterface = typeDef.interfacesStart + typeDef.interfaces_count;
+            //    for (var i = typeDef.interfacesStart; i < maxInterface; i++)
+            //    {
+            //        var pInterface = metadata.Interfaces[i];
+            //        //var pType = il2cpp.Code.GetTypeFromTypeIndex(pInterface.);
+            //        //var name = il2cpp.GetTypeName(pType);
+            //        var name = metadata.GetString(pInterface.nameIndex);
+            //        writer.Write($" implements {name}");
+            //    }
+            //}
 
             // class extenss another type
             if (typeDef.parentIndex >= 0)
@@ -109,6 +120,8 @@ namespace Il2CppDumper.Dumpers
 
         internal void WriteFields(StreamWriter writer, Il2CppTypeDefinition typeDef)
         {
+            if (typeDef.field_count <= 0) return;
+
             writer.Write("\t\t// Fields\n");
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart; i < fieldEnd; ++i)
@@ -131,6 +144,8 @@ namespace Il2CppDumper.Dumpers
 
         internal void WriteMethods(StreamWriter writer, Il2CppTypeDefinition typeDef)
         {
+            if (typeDef.method_count <= 0) return;
+
             writer.Write("\t\t// Methods\n");
             var methodEnd = typeDef.methodStart + typeDef.method_count;
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
@@ -140,11 +155,11 @@ namespace Il2CppDumper.Dumpers
                 if (methodDef.methodIndex >= 0)
                 {
                     var ptr = il2cpp.Code.PtrCodeRegistration.methodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// {0:x}\n", ptr);
+                    writer.Write("\t\t// Offset: {0:x}, MethodIdx: {1}\n", ptr, methodDef.methodIndex);
                 }
                 else
                 {
-                    writer.Write("\t\t// ?\n");
+                    writer.Write("\t\t// Offset: ?\n");
                 }
 
                 writer.Write("\t\t");
@@ -160,7 +175,8 @@ namespace Il2CppDumper.Dumpers
                 if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_STATIC) != 0)
                     writer.Write("static ");
 
-                writer.Write($"{il2cpp.GetTypeName(pReturnType)} {metadata.GetString(methodDef.nameIndex)}(");
+                var methodName = metadata.GetString(methodDef.nameIndex);
+                writer.Write($"{il2cpp.GetTypeName(pReturnType)} {methodName}(");
                 for (int j = 0; j < methodDef.parameterCount; ++j)
                 {
                     Il2CppParameterDefinition pParam = metadata.parameterDefs[methodDef.parameterStart + j];

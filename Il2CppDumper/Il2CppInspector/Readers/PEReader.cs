@@ -80,16 +80,16 @@ namespace Il2CppInspector.Readers
             return true;
         }
 
-        public override uint[] GetSearchLocations() {
+        public override long[] GetSearchLocations() {
             Position = pFuncTable;
             var addrs = new List<uint>();
             uint addr;
             while ((addr = ReadUInt32()) != 0)
-                addrs.Add(MapVATR(addr) & 0xfffffffc);
-            return addrs.ToArray();
+                addrs.Add(((uint)MapVATR(addr)) & 0xfffffffc);
+            return addrs.Select(a => (long)a).ToArray();
         }
         
-        public override uint MapVATR(uint uiAddr) {
+        public override long MapVATR(long uiAddr) {
             if (uiAddr == 0) return 0;
 
             var section = sections.First(x => uiAddr - GlobalOffset >= x.BaseMemory &&

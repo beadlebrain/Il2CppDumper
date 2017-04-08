@@ -104,7 +104,8 @@ namespace Il2CppInspector
                 var typeNames = new List<string>();
                 Il2CppGenericInst pInst = Code.Image.ReadMappedObject<Il2CppGenericInst>(generic_class.context.class_inst);
                 var pointers = Code.Image.ReadMappedArray<uint>(pInst.type_argv, (int)pInst.type_argc);
-                for (int i = 0; i < pInst.type_argc; ++i) {
+                for (int i = 0; i < pInst.type_argc; ++i)
+                {
                     var pOriType = Code.Image.ReadMappedObject<Il2CppType>(pointers[i]);
                     pOriType.Init();
                     typeNames.Add(GetTypeName(pOriType));
