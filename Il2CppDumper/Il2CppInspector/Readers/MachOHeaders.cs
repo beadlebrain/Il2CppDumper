@@ -135,9 +135,9 @@ namespace Il2CppInspector.Readers
     internal class MyMachoSection
     {
         public string name;
-        public uint address;
-        public uint size;
-        public uint offset;
-        public uint end;
+        public long address;
+        public long size;
+        public long offset;
+        public long end;
     }
 }

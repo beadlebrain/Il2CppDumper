@@ -12,10 +12,10 @@ namespace Il2CppInspector
     internal class Il2CppReaderX86 : Il2CppReader
     {
         public Il2CppReaderX86(IFileFormatReader stream) : base(stream) { }
-        public Il2CppReaderX86(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
 
-        protected override (uint, uint) Search(uint loc, uint globalOffset) {
-            uint funcPtr, metadata, code;
+        protected override (long, long) Search(long loc, long globalOffset)
+        {
+            long funcPtr, metadata, code;
 
             // Variant 1
 

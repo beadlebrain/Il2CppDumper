@@ -184,5 +184,11 @@ namespace Il2CppInspector.Structures
     {
         public int length;
         public int dataIndex;
-    };
+    }
+
+    public class Il2CppInterfaceOffsetPair
+    {
+        public int interfaceTypeIndex;
+        public int offset;
+    }
 }
