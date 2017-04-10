@@ -154,8 +154,8 @@ namespace Il2CppDumper.Dumpers
 
                 if (methodDef.methodIndex >= 0)
                 {
-                    var ptr = il2cpp.Code.PtrCodeRegistration.methodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// Offset: {0:x}, MethodIdx: {1}\n", ptr, methodDef.methodIndex);
+                    var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
+                    writer.Write("\t\t// Offset: {0:x}\n", ptr);
                 }
                 else
                 {
@@ -181,7 +181,7 @@ namespace Il2CppDumper.Dumpers
                 {
                     Il2CppParameterDefinition pParam = metadata.parameterDefs[methodDef.parameterStart + j];
                     string szParamName = metadata.GetString(pParam.nameIndex);
-                    Il2CppType pType = il2cpp.Code.GetTypeFromTypeIndex(pParam.typeIndex);
+                    var pType = il2cpp.Code.GetTypeFromTypeIndex(pParam.typeIndex);
                     string szTypeName = il2cpp.GetTypeName(pType);
                     if ((pType.attrs & DefineConstants.PARAM_ATTRIBUTE_OPTIONAL) != 0)
                         writer.Write("optional ");

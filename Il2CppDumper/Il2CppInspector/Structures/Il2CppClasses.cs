@@ -50,11 +50,6 @@ namespace Il2CppInspector.Structures
         public ulong customAttributeGenerators;
         public long guidCount;
         public ulong guids; // Il2CppGuid
-
-        public ulong[] methodPointers
-        {
-            get; set;
-        }
     }
 
 #pragma warning disable CS0649
@@ -78,16 +73,6 @@ namespace Il2CppInspector.Structures
         public uint typeDefinitionsSizes;
         public uint metadataUsagesCount;
         public uint metadataUsages;
-
-        public int[] fieldOffsets
-        {
-            get; set;
-        }
-
-        public Il2CppType[] types
-        {
-            get; set;
-        }
     }
 
     public class Il2CppMetadataRegistration64
@@ -110,16 +95,6 @@ namespace Il2CppInspector.Structures
         public ulong typeDefinitionsSizes;
         public ulong metadataUsagesCount;
         public ulong metadataUsages;
-
-        public long[] fieldOffsets
-        {
-            get; set;
-        }
-
-        public Il2CppType64[] types
-        {
-            get; set;
-        }
     }
 #pragma warning restore CS0649
 
@@ -170,12 +145,18 @@ namespace Il2CppInspector.Structures
         public Il2CppTypeEnum type { get; set; }
         public long klassIndex { get; set; }
         public ulong generic_class { get; set; }
+        public ulong dataType { get; set; }
+        public ulong dataArray { get; set; }
+        public uint attrs { get; set; }
 
         public GenericIl2CppType(Il2CppType pType)
         {
             type = pType.type;
             klassIndex = pType.data.klassIndex;
             generic_class = pType.data.generic_class;
+            dataType = pType.data.type;
+            dataArray = pType.data.array;
+            attrs = pType.attrs;
         }
 
         public GenericIl2CppType(Il2CppType64 pType)
@@ -183,6 +164,9 @@ namespace Il2CppInspector.Structures
             type = pType.type;
             klassIndex = pType.data.klassIndex;
             generic_class = pType.data.generic_class;
+            dataType = pType.data.type;
+            dataArray = pType.data.array;
+            attrs = pType.attrs;
         }
     }
 
@@ -274,7 +258,7 @@ namespace Il2CppInspector.Structures
     public class Il2CppGenericClass64
     {
         public long typeDefinitionIndex;    /* the generic type definition */
-        public Il2CppGenericContext context;   /* a context that contains the type instantiation doesn't contain any method instantiation */
+        public Il2CppGenericContext64 context;   /* a context that contains the type instantiation doesn't contain any method instantiation */
         public ulong cached_class; /* if present, the Il2CppClass corresponding to the instantiation.  */
     }
 
@@ -315,8 +299,7 @@ namespace Il2CppInspector.Structures
         public uint sizes;
         public uint lobounds;
     }
-
-
+    
     public class Il2CppArrayType64
     {
         public ulong etype;

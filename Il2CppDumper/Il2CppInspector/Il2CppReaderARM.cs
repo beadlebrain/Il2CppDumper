@@ -69,20 +69,19 @@ namespace Il2CppInspector
         private (bool, long, long) SearchAltARM7(long loc, long globalOffset)
         {
             var locfix = loc - 1;
-            var bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
+            var bytes = new byte[] { 0x0, 0x22 }; // MOVS R2, #0
             Image.Position = Image.MapVATR(locfix);
             Image.Position += 4;
             var buff = Image.ReadBytes(2);
             if (bytes.SequenceEqual(buff))
             {
-                bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; //ADD R0, PC and ADD R1, PC
+                bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; // ADD R0, PC and ADD R1, PC
                 Image.Position += 12;
                 buff = Image.ReadBytes(4);
                 if (bytes.SequenceEqual(buff))
                 {
                     Image.Position = Image.MapVATR(locfix) + 10;
                     bytes = Image.ReadBytes(8);
-                    logger.Debug(BitConverter.ToString(bytes));
                     var subaddr = (long)(decodeMovImm32(bytes) + (uint)locfix + 24u - 1u);
                     var rsubaddr = Image.MapVATR(subaddr);
                     Image.Position = rsubaddr;

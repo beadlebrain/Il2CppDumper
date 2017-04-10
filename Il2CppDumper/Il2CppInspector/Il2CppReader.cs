@@ -23,7 +23,8 @@ namespace Il2CppInspector
         }
 
         public GenericIl2CppType[] Types { get; set; }
-        
+        public long[] MethodPointers { get; set; }
+
         // Architecture-specific search function
         protected abstract (long, long) Search(long loc, long globalOffset);
 
@@ -39,6 +40,7 @@ namespace Il2CppInspector
                         var (code, metadata) = Search(loc, Image.GlobalOffset);
                         if (code != 0)
                         {
+                            logger.Debug("Offset found: 0x{0:x} 0x{1:x}", code, metadata);
                             Configure(code, metadata);
                             return true;
                         }
@@ -52,10 +54,12 @@ namespace Il2CppInspector
         internal virtual void Configure(long codeRegistration, long metadataRegistration) {
             var PtrCodeRegistration = Image.ReadMappedObject<Il2CppCodeRegistration>(codeRegistration);
             var PtrMetadataRegistration = Image.ReadMappedObject<Il2CppMetadataRegistration>(metadataRegistration);
-            PtrCodeRegistration.methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers,
-                (int) PtrCodeRegistration.methodPointersCount);
-            PtrMetadataRegistration.fieldOffsets = Image.ReadMappedArray<int>(PtrMetadataRegistration.pfieldOffsets,
-                PtrMetadataRegistration.fieldOffsetsCount);
+
+            var methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers, (int) PtrCodeRegistration.methodPointersCount);
+            MethodPointers = methodPointers.Select(p => (long)p).ToArray();
+
+            //PtrMetadataRegistration.fieldOffsets = Image.ReadMappedArray<int>(PtrMetadataRegistration.pfieldOffsets,
+            //    PtrMetadataRegistration.fieldOffsetsCount);
 
             long[] types;
             if (Image.Is64bits)

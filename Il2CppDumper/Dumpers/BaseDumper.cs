@@ -35,7 +35,7 @@ namespace Il2CppDumper.Dumpers
             if (pDefault != null && pDefault.dataIndex != -1)
             {
                 var pointer = metadata.GetDefaultValueFromIndex(pDefault.dataIndex);
-                Il2CppType pTypeToUse = il2cpp.Code.GetTypeFromTypeIndex(pDefault.typeIndex);
+                var pTypeToUse = il2cpp.Code.GetTypeFromTypeIndex(pDefault.typeIndex);
                 if (pointer > 0)
                 {
                     metadata.Position = pointer;

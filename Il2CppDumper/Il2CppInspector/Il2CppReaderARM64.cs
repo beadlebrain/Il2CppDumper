@@ -18,35 +18,16 @@ namespace Il2CppInspector
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Il2CppReaderARM64(IFileFormatReader stream) : base(stream) { }
-
-        internal override void Configure(long codeRegistration, long metadataRegistration)
-        {
-            var ptrCodeReg = Image.ReadMappedObject<Il2CppCodeRegistration64>(codeRegistration);
-            var ptrMetadataReg = Image.ReadMappedObject<Il2CppMetadataRegistration64>(metadataRegistration);
-            ptrCodeReg.methodPointers = Image.ReadMappedArray<ulong>((long)ptrCodeReg.pmethodPointers, (int)ptrCodeReg.methodPointersCount);
-            ptrMetadataReg.fieldOffsets = Image.ReadMappedArray<long>((long)ptrMetadataReg.pfieldOffsets, (int)ptrMetadataReg.fieldOffsetsCount);
-            
-            var ptrs = Image.ReadMappedArray<ulong>((long)ptrMetadataReg.ptypes, (int)ptrMetadataReg.typesCount);
-            var types = ptrs.Select(p => (long)p).ToArray();
-            
-            Types = new GenericIl2CppType[ptrMetadataReg.typesCount];
-            for (var i = 0; i < ptrMetadataReg.typesCount; ++i)
-            {
-                var pType = Image.ReadMappedObject<Il2CppType64>(types[i]);
-                pType.Init();
-                Types[i] = new GenericIl2CppType(pType);
-            }
-        }
-
+        
         protected override (long, long) Search(long loc, long globalOffset)
         {
             // iOS ARM64
-            var bytes = new byte[] { 0x2, 0x0, 0x80, 0xD2 }; //MOV X2, #0
+            var bytes = new byte[] { 0x2, 0x0, 0x80, 0xD2 }; // MOV X2, #0
             Image.Position = Image.MapVATR(loc);
             var buff = Image.ReadBytes(4);
             if (bytes.SequenceEqual(buff))
             {
-                bytes = new byte[] { 0x3, 0x0, 0x80, 0x52 }; //MOV W3, #0
+                bytes = new byte[] { 0x3, 0x0, 0x80, 0x52 }; // MOV W3, #0
                 buff = Image.ReadBytes(4);
                 if (bytes.SequenceEqual(buff))
                 {
@@ -65,7 +46,30 @@ namespace Il2CppInspector
 
             return (0, 0);
         }
-        
+
+
+        internal override void Configure(long codeRegistration, long metadataRegistration)
+        {
+            var ptrCodeReg = Image.ReadMappedObject<Il2CppCodeRegistration64>(codeRegistration);
+            var ptrMetadataReg = Image.ReadMappedObject<Il2CppMetadataRegistration64>(metadataRegistration);
+
+            var methodPointers = Image.ReadMappedArray<ulong>((long)ptrCodeReg.pmethodPointers, (int)ptrCodeReg.methodPointersCount);
+            MethodPointers = methodPointers.Select(p => (long)p).ToArray();
+
+            //ptrMetadataReg.fieldOffsets = Image.ReadMappedArray<long>((long)ptrMetadataReg.pfieldOffsets, (int)ptrMetadataReg.fieldOffsetsCount);
+
+            var ptrs = Image.ReadMappedArray<ulong>((long)ptrMetadataReg.ptypes, (int)ptrMetadataReg.typesCount);
+            var types = ptrs.Select(p => (long)p).ToArray();
+
+            Types = new GenericIl2CppType[ptrMetadataReg.typesCount];
+            for (var i = 0; i < ptrMetadataReg.typesCount; ++i)
+            {
+                var pType = Image.ReadMappedObject<Il2CppType64>(types[i]);
+                pType.Init();
+                Types[i] = new GenericIl2CppType(pType);
+            }
+        }
+
         private long decodeAdr(long pc, byte[] label)
         {
             var bin = "";
