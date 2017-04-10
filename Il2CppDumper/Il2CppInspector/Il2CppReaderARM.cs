@@ -7,6 +7,7 @@
 
 using Il2CppInspector.Readers;
 using NLog;
+using System;
 using System.Linq;
 
 namespace Il2CppInspector
@@ -17,9 +18,18 @@ namespace Il2CppInspector
 
         public Il2CppReaderARM(IFileFormatReader stream) : base(stream) { }
 
-        public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
+        internal override void Configure(long codeRegistration, long metadataRegistration)
+        {
+            base.Configure(codeRegistration, metadataRegistration);
 
-        private (bool, uint, uint) SearchARM(uint loc, uint globalOffset)
+            if (Image is MachOReader)
+            {
+                // fix method pointer in mach-o (always +1, don't know why)
+                MethodPointers = MethodPointers.Select(ptr => ptr - 1).ToArray();
+            }
+        }
+
+        private (bool, long, long) SearchARM(long loc, long globalOffset)
         {
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
             Image.Position = loc;
@@ -40,7 +50,7 @@ namespace Il2CppInspector
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchARM7Thumb(uint loc, uint globalOffset)
+        private (bool, long, long) SearchARM7Thumb(long loc, long globalOffset)
         {
             // ARMv7 Thumb (T1)
             // http://liris.cnrs.fr/~mmrissa/lib/exe/fetch.php?media=armv7-a-r-manual.pdf - A8.8.106
@@ -67,22 +77,23 @@ namespace Il2CppInspector
             return (false, 0, 0);
         }
 
-        private (bool, uint, uint) SearchAltARM7(uint loc, uint globalOffset)
+        private (bool, long, long) SearchAltARM7(long loc, long globalOffset)
         {
             var locfix = loc - 1;
-            var bytes = new byte[] { 0x0, 0x22 }; //MOVS R2, #0
+            var bytes = new byte[] { 0x0, 0x22 }; // MOVS R2, #0
             Image.Position = Image.MapVATR(locfix);
             Image.Position += 4;
             var buff = Image.ReadBytes(2);
             if (bytes.SequenceEqual(buff))
             {
-                bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; //ADD R0, PC and ADD R1, PC
+                bytes = new byte[] { 0x78, 0x44, 0x79, 0x44 }; // ADD R0, PC and ADD R1, PC
                 Image.Position += 12;
                 buff = Image.ReadBytes(4);
                 if (bytes.SequenceEqual(buff))
                 {
                     Image.Position = Image.MapVATR(locfix) + 10;
-                    var subaddr = decodeMovImm32(Image.ReadBytes(8)) + locfix + 24u - 1u;
+                    bytes = Image.ReadBytes(8);
+                    var subaddr = (long)(decodeMovImm32(bytes) + (uint)locfix + 24u - 1u);
                     var rsubaddr = Image.MapVATR(subaddr);
                     Image.Position = rsubaddr;
                     var ptr = decodeMovImm32(Image.ReadBytes(8)) + subaddr + 16u;
@@ -99,19 +110,12 @@ namespace Il2CppInspector
 
             return (false, 0, 0);
         }
-
-        private (bool, uint, uint) SearchAltARM64(uint loc, uint globalOffset)
-        {
-
-
-            return (false, 0, 0);
-        }
-
-        protected override (uint, uint) Search(uint loc, uint globalOffset) {
+        
+        protected override (long, long) Search(long loc, long globalOffset) {
             // Assembly bytes to search for at start of each function
             bool found = false;
-            uint codeRegistration, metadataRegistration;
-
+            long codeRegistration, metadataRegistration;
+            
             // ARM (should work on elf)
             logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
             (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
@@ -124,15 +128,14 @@ namespace Il2CppInspector
 
             // Not found, try alternate method that should work on iOS arm7
             logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
-            (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset); 
+            (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset);
             if (found) return (codeRegistration, metadataRegistration);
-
-            // iOS ARM64 ?
-
+        
             return (0, 0);
         }
 
-        private uint decodeMovImm32(byte[] asm) {
+        private uint decodeMovImm32(byte[] asm)
+        {
             ushort low = (ushort) (asm[2] + ((asm[3] & 0x70) << 4) + ((asm[1] & 0x04) << 9) + ((asm[0] & 0x0f) << 12));
             ushort high = (ushort) (asm[6] + ((asm[7] & 0x70) << 4) + ((asm[5] & 0x04) << 9) + ((asm[4] & 0x0f) << 12));
             return (uint) ((high << 16) + low);

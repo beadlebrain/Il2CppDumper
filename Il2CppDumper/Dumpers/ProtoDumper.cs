@@ -62,12 +62,12 @@ namespace Il2CppDumper.Dumpers
         internal void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef, string pad = "")
         {
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) return;
-            var typesToDump = new List<Il2CppType>();
+            var typesToDump = new List<GenericIl2CppType>();
             writer.Write("\n");
             writer.Write(pad + $"message {metadata.GetTypeName(typeDef)}\n");
             writer.Write(pad + "{\n");
 
-            var methodsReturn = new Dictionary<string, Il2CppType>();
+            var methodsReturn = new Dictionary<string, GenericIl2CppType>();
             var methodEnd = typeDef.methodStart + typeDef.method_count;
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
             {
@@ -107,13 +107,9 @@ namespace Il2CppDumper.Dumpers
                 var realType = pType;
                 if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
                 {
-                    var generic = il2cpp.Code.Image.ReadMappedObject<Il2CppGenericClass>(realType.data.generic_class);
-                    var pInst = il2cpp.Code.Image.ReadMappedObject<Il2CppGenericInst>(generic.context.class_inst);
-                    var pointers = il2cpp.Code.Image.ReadMappedArray<uint>(pInst.type_argv, (int)pInst.type_argc);
-                    realType = il2cpp.Code.Image.ReadMappedObject<Il2CppType>(pointers[0]);
-                    realType.Init();
+                    realType = il2cpp.GetTypeFromGeneric(realType);
                 }
-                var subtypeDef = metadata.Types[realType.data.klassIndex];
+                var subtypeDef = metadata.Types[realType.klassIndex];
                 if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || realType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS)
                 {
                     if (!holoTypes.Any(t => t.nameIndex == subtypeDef.nameIndex))

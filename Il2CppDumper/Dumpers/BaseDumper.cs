@@ -21,9 +21,9 @@ namespace Il2CppDumper.Dumpers
 
         internal int FindTypeIndex(string name)
         {
-            for (var idx = 0; idx < il2cpp.Code.PtrMetadataRegistration.types.Length; idx++)
+            for (var idx = 0; idx < il2cpp.Code.Types.Length; idx++)
             {
-                var typename = il2cpp.GetTypeName(il2cpp.Code.PtrMetadataRegistration.types[idx]);
+                var typename = il2cpp.GetTypeName(il2cpp.Code.Types[idx]);
                 if (typename == name) return idx;
             }
             return -1;
@@ -35,7 +35,7 @@ namespace Il2CppDumper.Dumpers
             if (pDefault != null && pDefault.dataIndex != -1)
             {
                 var pointer = metadata.GetDefaultValueFromIndex(pDefault.dataIndex);
-                Il2CppType pTypeToUse = il2cpp.Code.GetTypeFromTypeIndex(pDefault.typeIndex);
+                var pTypeToUse = il2cpp.Code.GetTypeFromTypeIndex(pDefault.typeIndex);
                 if (pointer > 0)
                 {
                     metadata.Position = pointer;

@@ -48,7 +48,7 @@ namespace Il2CppInspector.Readers
             return true;
         }
 
-        public override uint[] GetSearchLocations() {
+        public override long[] GetSearchLocations() {
             // Find dynamic section
             var dynamic = new elf_32_shdr();
             var PT_DYNAMIC = program_table_element.First(x => x.p_type == 2u);
@@ -69,7 +69,7 @@ namespace Il2CppInspector.Readers
                 }
                 else if (tag == 25) //DT_INIT_ARRAY
                 {
-                    init_array.sh_offset = MapVATR(ReadUInt32());
+                    init_array.sh_offset = (uint)MapVATR(ReadUInt32());
                     continue;
                 }
                 else if (tag == 27) //DT_INIT_ARRAYSZ
@@ -82,10 +82,11 @@ namespace Il2CppInspector.Readers
             if (_GLOBAL_OFFSET_TABLE_ == 0)
                 throw new InvalidOperationException("Unable to get GLOBAL_OFFSET_TABLE from PT_DYNAMIC");
             GlobalOffset = _GLOBAL_OFFSET_TABLE_;
-            return ReadArray<uint>(init_array.sh_offset, (int) init_array.sh_size / 4);
+            var locations = ReadArray<uint>(init_array.sh_offset, (int) init_array.sh_size / 4);
+            return locations.Select(l => (long)l).ToArray();
         }
         
-        public override uint MapVATR(uint uiAddr)
+        public override long MapVATR(long uiAddr)
         {
             var program_header_table = program_table_element.First(x => uiAddr >= x.p_vaddr && uiAddr <= (x.p_vaddr + x.p_memsz));
             return uiAddr - (program_header_table.p_vaddr - program_header_table.p_offset);

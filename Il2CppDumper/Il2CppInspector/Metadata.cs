@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using NoisyCowStudios.Bin2Object;
 using Il2CppInspector.Structures;
+using System.Collections.Generic;
 
 namespace Il2CppInspector
 {
@@ -24,7 +25,9 @@ namespace Il2CppInspector
         public Il2CppParameterDefinition[] parameterDefs;
         public Il2CppFieldDefinition[] Fields { get; }
         public Il2CppFieldDefaultValue[] fieldDefaultValues;
-        public string[] Strings;
+        public string[] Strings { get; }
+        public Dictionary<int, Il2CppTypeDefinition> Interfaces { get; }
+        public uint[] EncodedMethods { get; }
 
         public string GetImageName(Il2CppImageDefinition image) => GetString(image.nameIndex);
         public string GetTypeNamespace(Il2CppTypeDefinition type) => GetString(type.namespaceIndex);
@@ -57,7 +60,18 @@ namespace Il2CppInspector
             Images = ReadArray<Il2CppImageDefinition>(pMetadataHdr.imagesOffset, uiImageCount);
 
             // Interfaces
+            Interfaces = new Dictionary<int, Il2CppTypeDefinition>();
+            //var uiInterfacePairCount = pMetadataHdr.interfaceOffsetsCount / MySizeOf(typeof(Il2CppInterfaceOffsetPair));
+            //var interfacePairs = ReadArray<Il2CppInterfaceOffsetPair>(pMetadataHdr.interfaceOffsetsOffset, uiInterfacePairCount);
+            //var uiInterfaceCount = pMetadataHdr.interfacesCount / MySizeOf(typeof(Il2CppTypeDefinition));
+            //var interfaceDefs = ReadArray<Il2CppTypeDefinition>(pMetadataHdr.interfacesOffset, uiInterfaceCount);
+            //for (var i = 0; i < interfacePairs.Count(); i++)
+            //{
+            //    Interfaces[i] = interfaceDefs[interfacePairs[i].interfaceTypeIndex];
+            //}
 
+            // EncodedMethods
+            //EncodedMethods = ReadArray<uint>(pMetadataHdr.vtableMethodsOffset, pMetadataHdr.vtableMethodsCount);
 
             // GetTypeDefFromIndex
             var uiNumTypes = pMetadataHdr.typeDefinitionsCount / MySizeOf(typeof(Il2CppTypeDefinition));
@@ -111,6 +125,10 @@ namespace Il2CppInspector
                 else if (i.FieldType == typeof(ushort))
                 {
                     size += 2;
+                }
+                else
+                {
+                    throw new Exception("unimplemented");
                 }
             }
             return size;

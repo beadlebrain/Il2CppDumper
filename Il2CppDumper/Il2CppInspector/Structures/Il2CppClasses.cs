@@ -30,6 +30,28 @@ namespace Il2CppInspector.Structures
         }
     }
 
+    public class Il2CppCodeRegistration64
+    {
+        public ulong methodPointersCount;
+        public ulong pmethodPointers;
+        public ulong delegateWrappersFromNativeToManagedCount;
+        public ulong delegateWrappersFromNativeToManaged; // note the double indirection to handle different calling conventions
+        public ulong delegateWrappersFromManagedToNativeCount;
+        public ulong delegateWrappersFromManagedToNative;
+        public ulong marshalingFunctionsCount;
+        public ulong marshalingFunctions;
+        public ulong ccwMarshalingFunctionsCount;
+        public ulong ccwMarshalingFunctions;
+        public ulong genericMethodPointersCount;
+        public ulong genericMethodPointers;
+        public ulong invokerPointersCount;
+        public ulong invokerPointers;
+        public long customAttributeCount;
+        public ulong customAttributeGenerators;
+        public long guidCount;
+        public ulong guids; // Il2CppGuid
+    }
+
 #pragma warning disable CS0649
     public class Il2CppMetadataRegistration
     {
@@ -51,16 +73,28 @@ namespace Il2CppInspector.Structures
         public uint typeDefinitionsSizes;
         public uint metadataUsagesCount;
         public uint metadataUsages;
+    }
 
-        public int[] fieldOffsets
-        {
-            get; set;
-        }
+    public class Il2CppMetadataRegistration64
+    {
+        public long genericClassesCount;
+        public ulong genericClasses;
+        public long genericInstsCount;
+        public ulong genericInsts;
+        public long genericMethodTableCount;
+        public ulong genericMethodTable; // Il2CppGenericMethodFunctionsDefinitions
+        public long typesCount;
+        public ulong ptypes;
+        public long methodSpecsCount;
+        public ulong methodSpecs;
 
-        public Il2CppType[] types
-        {
-            get; set;
-        }
+        public long fieldOffsetsCount;
+        public ulong pfieldOffsets;
+
+        public long typeDefinitionsSizesCount;
+        public ulong typeDefinitionsSizes;
+        public ulong metadataUsagesCount;
+        public ulong metadataUsages;
     }
 #pragma warning restore CS0649
 
@@ -106,6 +140,36 @@ namespace Il2CppInspector.Structures
         IL2CPP_TYPE_ENUM = 0x55        /* an enumeration */
     }
 
+    public class GenericIl2CppType
+    {
+        public Il2CppTypeEnum type { get; set; }
+        public long klassIndex { get; set; }
+        public ulong generic_class { get; set; }
+        public ulong dataType { get; set; }
+        public ulong dataArray { get; set; }
+        public uint attrs { get; set; }
+
+        public GenericIl2CppType(Il2CppType pType)
+        {
+            type = pType.type;
+            klassIndex = pType.data.klassIndex;
+            generic_class = pType.data.generic_class;
+            dataType = pType.data.type;
+            dataArray = pType.data.array;
+            attrs = pType.attrs;
+        }
+
+        public GenericIl2CppType(Il2CppType64 pType)
+        {
+            type = pType.type;
+            klassIndex = pType.data.klassIndex;
+            generic_class = pType.data.generic_class;
+            dataType = pType.data.type;
+            dataArray = pType.data.array;
+            attrs = pType.attrs;
+        }
+    }
+
     public class Il2CppType
     {
         public uint datapoint;
@@ -135,41 +199,52 @@ namespace Il2CppInspector.Structures
         public class Anonymous
         {
             public uint dummy;
-            public int klassIndex
+            public int klassIndex => (int)dummy;
+
+            public uint type => dummy;
+            public uint array => dummy;
+
+            public int genericParameterIndex => (int)dummy;
+            public uint generic_class => dummy;
+        }
+    }
+
+    public class Il2CppType64
+    {
+        public ulong datapoint;
+        public Anonymous data { get; set; }
+        public uint bits;
+        public uint attrs { get; set; }
+        public Il2CppTypeEnum type { get; set; }
+        public uint num_mods { get; set; }
+        public uint byref { get; set; }
+        public uint pinned { get; set; }
+
+        public void Init()
+        {
+            var str = Convert.ToString(bits, 2);
+            if (str.Length != 32)
             {
-                get
-                {
-                    return (int)dummy;
-                }
+                str = new string(Enumerable.Repeat('0', 32 - str.Length).Concat(str.ToCharArray()).ToArray());
             }
-            public uint type
-            {
-                get
-                {
-                    return dummy;
-                }
-            }
-            public uint array
-            {
-                get
-                {
-                    return dummy;
-                }
-            }
-            public int genericParameterIndex
-            {
-                get
-                {
-                    return (int)dummy;
-                }
-            }
-            public uint generic_class
-            {
-                get
-                {
-                    return dummy;
-                }
-            }
+            attrs = Convert.ToUInt32(str.Substring(16, 16), 2);
+            type = (Il2CppTypeEnum)Convert.ToInt32(str.Substring(8, 8), 2);
+            num_mods = Convert.ToUInt32(str.Substring(2, 6), 2);
+            byref = Convert.ToUInt32(str.Substring(1, 1), 2);
+            pinned = Convert.ToUInt32(str.Substring(0, 1), 2);
+            data = new Anonymous() { dummy = datapoint };
+        }
+
+        public class Anonymous
+        {
+            public ulong dummy;
+            public long klassIndex => (long)dummy;
+
+            public ulong type => dummy;
+            public ulong array => dummy;
+
+            public long genericParameterIndex => (long)dummy;
+            public ulong generic_class => dummy;
         }
     }
 
@@ -180,6 +255,13 @@ namespace Il2CppInspector.Structures
         public uint cached_class; /* if present, the Il2CppClass corresponding to the instantiation.  */
     }
 
+    public class Il2CppGenericClass64
+    {
+        public long typeDefinitionIndex;    /* the generic type definition */
+        public Il2CppGenericContext64 context;   /* a context that contains the type instantiation doesn't contain any method instantiation */
+        public ulong cached_class; /* if present, the Il2CppClass corresponding to the instantiation.  */
+    }
+
     public class Il2CppGenericContext
     {
         /* The instantiation corresponding to the class generic parameters */
@@ -188,11 +270,24 @@ namespace Il2CppInspector.Structures
         public uint method_inst;
     }
 
+    public class Il2CppGenericContext64
+    {
+        /* The instantiation corresponding to the class generic parameters */
+        public ulong class_inst;
+        /* The instantiation corresponding to the method generic parameters */
+        public ulong method_inst;
+    }
 
     public class Il2CppGenericInst
     {
         public uint type_argc;
         public uint type_argv;
+    }
+
+    public class Il2CppGenericInst64
+    {
+        public ulong type_argc;
+        public ulong type_argv;
     }
 
     public class Il2CppArrayType
@@ -203,5 +298,15 @@ namespace Il2CppInspector.Structures
         public byte numlobounds;
         public uint sizes;
         public uint lobounds;
+    }
+    
+    public class Il2CppArrayType64
+    {
+        public ulong etype;
+        public byte rank;
+        public byte numsizes;
+        public byte numlobounds;
+        public ulong sizes;
+        public ulong lobounds;
     }
 }

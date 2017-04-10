@@ -16,7 +16,7 @@ namespace Il2CppInspector.Readers
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
         internal List<MyMachoSection> sections = new List<MyMachoSection>();
-
+        
         public MachOReader(Stream stream) : base(stream) { }
         
         public override string Arch {
@@ -50,6 +50,8 @@ namespace Il2CppInspector.Readers
 
         private bool InitARM7()
         {
+            Is64bits = false;
+
             var header = ReadObject<MachoHeader>();
             for (int i = 0; i < header.ncmds; i++)
             {
@@ -81,6 +83,8 @@ namespace Il2CppInspector.Readers
 
         private bool InitARM64()
         {
+            Is64bits = true;
+
             var header = ReadObject<MachoHeader64>();
             for (int i = 0; i < header.ncmds; i++)
             {
@@ -97,12 +101,11 @@ namespace Il2CppInspector.Readers
                             sections.Add(new MyMachoSection()
                             {
                                 name = section.sectname,
-                                address = (uint)(section.addr + GlobalOffset),
-                                size = (uint)section.size,
+                                address = (long)section.addr + GlobalOffset,
+                                size = (long)section.size,
                                 offset = section.offset + GlobalOffset,
-                                end = (uint)(section.addr + GlobalOffset + section.size)
+                                end = (long)section.addr + GlobalOffset + (long)section.size
                             });
-
                         }
                     }
                 }
@@ -146,14 +149,25 @@ namespace Il2CppInspector.Readers
             return false;
         }
 
-        public override uint[] GetSearchLocations() {
-            var __mod_init_func = sections.First(x => x.name == "__mod_init_func");
-            return ReadArray<uint>(__mod_init_func.offset, (int)__mod_init_func.size / 4);
+        public override long[] GetSearchLocations() {
+            if (!Is64bits)
+            {
+                var __mod_init_func = sections.First(x => x.name == "__mod_init_func");
+                var locations = ReadArray<uint>(__mod_init_func.offset, (int)(__mod_init_func.size / 4));
+                return locations.Select(l => (long)l).ToArray();
+            }
+            else
+            {
+                var __mod_init_func = sections.First(x => x.name == "__mod_init_func");
+                var locations = ReadArray<ulong>(__mod_init_func.offset, (int)(__mod_init_func.size / 8));
+                return locations.Select(l => (long)l).ToArray();
+            }
         }
         
-        public override uint MapVATR(uint uiAddr)
+        public override long MapVATR(long uiAddr)
         {
-            var section = sections.First(x => uiAddr >= x.address && uiAddr <= x.end);
+            var corrected = uiAddr + GlobalOffset;
+            var section = sections.First(x => (corrected >= x.address && corrected <= x.end));
             return GlobalOffset + uiAddr - (section.address - section.offset);
         }
     }
