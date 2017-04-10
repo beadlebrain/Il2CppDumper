@@ -166,7 +166,8 @@ namespace Il2CppInspector.Readers
         
         public override long MapVATR(long uiAddr)
         {
-            var section = sections.First(x => (uiAddr >= x.address && uiAddr <= x.end));
+            var corrected = uiAddr + GlobalOffset;
+            var section = sections.First(x => (corrected >= x.address && corrected <= x.end));
             return GlobalOffset + uiAddr - (section.address - section.offset);
         }
     }

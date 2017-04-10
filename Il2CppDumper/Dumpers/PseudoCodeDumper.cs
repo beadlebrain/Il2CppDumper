@@ -155,7 +155,7 @@ namespace Il2CppDumper.Dumpers
                 if (methodDef.methodIndex >= 0)
                 {
                     var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// Offset: {0:x}\n", ptr);
+                    writer.Write("\t\t// Offset: 0x{0:x}\n", ptr);
                 }
                 else
                 {
