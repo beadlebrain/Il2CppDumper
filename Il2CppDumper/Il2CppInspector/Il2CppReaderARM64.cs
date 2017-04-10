@@ -46,8 +46,7 @@ namespace Il2CppInspector
 
             return (0, 0);
         }
-
-
+        
         internal override void Configure(long codeRegistration, long metadataRegistration)
         {
             var ptrCodeReg = Image.ReadMappedObject<Il2CppCodeRegistration64>(codeRegistration);

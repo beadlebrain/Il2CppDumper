@@ -78,13 +78,7 @@ namespace Il2CppInspector
                 logger.Error("Could not process IL2CPP image");
                 return null;
             }
-
-            // fix method pointer in mach-o (always +1, don't know why)
-            if (stream is MachOReader)
-            {
-                il2cpp.MethodPointers = il2cpp.MethodPointers.Select(ptr => ptr - 1).ToArray();
-            }
-
+            
             return new Il2CppProcessor(il2cpp, metadata);
         }
 

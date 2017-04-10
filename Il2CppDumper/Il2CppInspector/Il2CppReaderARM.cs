@@ -17,7 +17,18 @@ namespace Il2CppInspector
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Il2CppReaderARM(IFileFormatReader stream) : base(stream) { }
-        
+
+        internal override void Configure(long codeRegistration, long metadataRegistration)
+        {
+            base.Configure(codeRegistration, metadataRegistration);
+
+            if (Image is MachOReader)
+            {
+                // fix method pointer in mach-o (always +1, don't know why)
+                MethodPointers = MethodPointers.Select(ptr => ptr - 1).ToArray();
+            }
+        }
+
         private (bool, long, long) SearchARM(long loc, long globalOffset)
         {
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
