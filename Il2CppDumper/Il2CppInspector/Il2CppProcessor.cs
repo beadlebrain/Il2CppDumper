@@ -87,30 +87,49 @@ namespace Il2CppInspector
             return new Il2CppProcessor(il2cpp, metadata);
         }
 
-        public string GetTypeName(Il2CppType pType)
+        public string GetTypeName(GenericIl2CppType pType)
         {
             string ret;
 
             if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
             {
-                Il2CppTypeDefinition klass = Metadata.Types[pType.data.klassIndex];
+                Il2CppTypeDefinition klass = Metadata.Types[pType.klassIndex];
                 ret = Metadata.GetString(klass.nameIndex);
             }
             else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_GENERICINST)
             {
-                Il2CppGenericClass generic_class = Code.Image.ReadMappedObject<Il2CppGenericClass>(pType.data.generic_class);
-                Il2CppTypeDefinition pMainDef = Metadata.Types[generic_class.typeDefinitionIndex];
-                ret = Metadata.GetString(pMainDef.nameIndex);
-                var typeNames = new List<string>();
-                Il2CppGenericInst pInst = Code.Image.ReadMappedObject<Il2CppGenericInst>(generic_class.context.class_inst);
-                var pointers = Code.Image.ReadMappedArray<uint>(pInst.type_argv, (int)pInst.type_argc);
-                for (int i = 0; i < pInst.type_argc; ++i)
+                if (Code.Image.Is64bits)
                 {
-                    var pOriType = Code.Image.ReadMappedObject<Il2CppType>(pointers[i]);
-                    pOriType.Init();
-                    typeNames.Add(GetTypeName(pOriType));
+                    Il2CppGenericClass64 generic_class = Code.Image.ReadMappedObject<Il2CppGenericClass64>((long)pType.generic_class);
+                    Il2CppTypeDefinition pMainDef = Metadata.Types[generic_class.typeDefinitionIndex];
+                    ret = Metadata.GetString(pMainDef.nameIndex);
+                    var typeNames = new List<string>();
+                    Il2CppGenericInst64 pInst = Code.Image.ReadMappedObject<Il2CppGenericInst64>(generic_class.context.class_inst);
+                    var pointers = Code.Image.ReadMappedArray<ulong>((long)pInst.type_argv, (int)pInst.type_argc);
+                    for (ulong i = 0; i < pInst.type_argc; ++i)
+                    {
+                        var pOriType = Code.Image.ReadMappedObject<Il2CppType64>((long)pointers[i]);
+                        pOriType.Init();
+                        typeNames.Add(GetTypeName(new GenericIl2CppType(pOriType)));
+                    }
+                    ret += $"<{string.Join(", ", typeNames)}>";
                 }
-                ret += $"<{string.Join(", ", typeNames)}>";
+                else
+                {
+                    Il2CppGenericClass generic_class = Code.Image.ReadMappedObject<Il2CppGenericClass>((long)pType.generic_class);
+                    Il2CppTypeDefinition pMainDef = Metadata.Types[generic_class.typeDefinitionIndex];
+                    ret = Metadata.GetString(pMainDef.nameIndex);
+                    var typeNames = new List<string>();
+                    Il2CppGenericInst pInst = Code.Image.ReadMappedObject<Il2CppGenericInst>(generic_class.context.class_inst);
+                    var pointers = Code.Image.ReadMappedArray<uint>(pInst.type_argv, (int)pInst.type_argc);
+                    for (int i = 0; i < pInst.type_argc; ++i)
+                    {
+                        var pOriType = Code.Image.ReadMappedObject<Il2CppType>(pointers[i]);
+                        pOriType.Init();
+                        typeNames.Add(GetTypeName(new GenericIl2CppType(pOriType)));
+                    }
+                    ret += $"<{string.Join(", ", typeNames)}>";
+                }
             }
             else if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_ARRAY)
             {

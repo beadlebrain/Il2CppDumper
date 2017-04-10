@@ -7,6 +7,7 @@
 
 using Il2CppInspector.Readers;
 using NLog;
+using System;
 using System.Linq;
 
 namespace Il2CppInspector
@@ -16,9 +17,7 @@ namespace Il2CppInspector
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Il2CppReaderARM(IFileFormatReader stream) : base(stream) { }
-
-        public Il2CppReaderARM(IFileFormatReader stream, uint codeRegistration, uint metadataRegistration) : base(stream, codeRegistration, metadataRegistration) { }
-
+        
         private (bool, long, long) SearchARM(long loc, long globalOffset)
         {
             var bytes = new byte[] { 0x1c, 0x0, 0x9f, 0xe5, 0x1c, 0x10, 0x9f, 0xe5, 0x1c, 0x20, 0x9f, 0xe5 };
@@ -81,13 +80,10 @@ namespace Il2CppInspector
                 buff = Image.ReadBytes(4);
                 if (bytes.SequenceEqual(buff))
                 {
-                    logger.Debug($"Pos: 0x{locfix.ToString("X")}");
                     Image.Position = Image.MapVATR(locfix) + 10;
-                    logger.Debug($"Pos: 0x{Image.Position.ToString("X")}");
                     bytes = Image.ReadBytes(8);
-                    logger.Debug(System.BitConverter.ToString(bytes));
-                    var subaddr = decodeMovImm32(bytes) + locfix + 24u - 1u;
-                    logger.Debug($"subaddr: 0x{subaddr.ToString("X")}");
+                    logger.Debug(BitConverter.ToString(bytes));
+                    var subaddr = (long)(decodeMovImm32(bytes) + (uint)locfix + 24u - 1u);
                     var rsubaddr = Image.MapVATR(subaddr);
                     Image.Position = rsubaddr;
                     var ptr = decodeMovImm32(Image.ReadBytes(8)) + subaddr + 16u;
@@ -104,48 +100,32 @@ namespace Il2CppInspector
 
             return (false, 0, 0);
         }
-
-        private (bool, long, long) SearchAltARM64(long loc, long globalOffset)
-        {
-
-
-            return (false, 0, 0);
-        }
-
+        
         protected override (long, long) Search(long loc, long globalOffset) {
             // Assembly bytes to search for at start of each function
             bool found = false;
             long codeRegistration, metadataRegistration;
+            
+            // ARM (should work on elf)
+            logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
+            if (found) return (codeRegistration, metadataRegistration);
 
-            logger.Debug($"Loc 0x{loc.ToString("X")}");
+            // ARMv7 thumb (should work on elf Arm7 thumb)
+            logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchARM7Thumb(loc, globalOffset);
+            if (found) return (codeRegistration, metadataRegistration);
 
-            if (Image.Is64bits)
-            {
-                // iOS ARM64 ?
-
-            }
-            else
-            {
-                // ARM (should work on elf)
-                logger.Debug("Search using SearchARM at 0x{0}...", loc.ToString("X"));
-                (found, codeRegistration, metadataRegistration) = SearchARM(loc, globalOffset);
-                if (found) return (codeRegistration, metadataRegistration);
-
-                // ARMv7 thumb (should work on elf Arm7 thumb)
-                logger.Debug("Search using SearchARM7 at 0x{0}...", loc.ToString("X"));
-                (found, codeRegistration, metadataRegistration) = SearchARM7Thumb(loc, globalOffset);
-                if (found) return (codeRegistration, metadataRegistration);
-
-                // Not found, try alternate method that should work on iOS arm7
-                logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
-                (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset);
-                if (found) return (codeRegistration, metadataRegistration);
-            }
-
+            // Not found, try alternate method that should work on iOS arm7
+            logger.Debug("Search using SearchAltARM7 at 0x{0}...", loc.ToString("X"));
+            (found, codeRegistration, metadataRegistration) = SearchAltARM7(loc, globalOffset);
+            if (found) return (codeRegistration, metadataRegistration);
+        
             return (0, 0);
         }
 
-        private uint decodeMovImm32(byte[] asm) {
+        private uint decodeMovImm32(byte[] asm)
+        {
             ushort low = (ushort) (asm[2] + ((asm[3] & 0x70) << 4) + ((asm[1] & 0x04) << 9) + ((asm[0] & 0x0f) << 12));
             ushort high = (ushort) (asm[6] + ((asm[7] & 0x70) << 4) + ((asm[5] & 0x04) << 9) + ((asm[4] & 0x0f) << 12));
             return (uint) ((high << 16) + low);

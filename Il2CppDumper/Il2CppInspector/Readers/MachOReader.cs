@@ -16,7 +16,7 @@ namespace Il2CppInspector.Readers
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
         internal List<MyMachoSection> sections = new List<MyMachoSection>();
-
+        
         public MachOReader(Stream stream) : base(stream) { }
         
         public override string Arch {
