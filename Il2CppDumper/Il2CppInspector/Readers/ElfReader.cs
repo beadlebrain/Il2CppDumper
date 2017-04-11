@@ -82,7 +82,7 @@ namespace Il2CppInspector.Readers
             if (_GLOBAL_OFFSET_TABLE_ == 0)
                 throw new InvalidOperationException("Unable to get GLOBAL_OFFSET_TABLE from PT_DYNAMIC");
             GlobalOffset = _GLOBAL_OFFSET_TABLE_;
-            var locations = ReadArray<uint>(init_array.sh_offset, (int) init_array.sh_size / 4);
+            var locations = ReadArray<uint>(init_array.sh_offset, (int)init_array.sh_size / 4);
             return locations.Select(l => (long)l).ToArray();
         }
         
