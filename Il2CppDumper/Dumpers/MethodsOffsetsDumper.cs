@@ -26,14 +26,12 @@ namespace Il2CppDumper.Dumpers
                         if (methodDef.methodIndex >= 0)
                         {
                             var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
-                            writer.Write("{0}{1} 0x{2:x}\n", typeName, methodName, ptr);
+                            writer.Write("{0}.{1} 0x{2:x}\n", typeName, methodName, ptr);
                         }
                     }
                     writer.Write("\n");
                 }
             }
         }
-
-
     }
 }
