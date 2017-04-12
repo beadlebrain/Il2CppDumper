@@ -29,10 +29,10 @@ namespace Il2CppInspector
 
         public static Il2CppProcessor LoadFromFile(string codeFile, string metadataFile)
         {
-            // Load the metadata file
+            logger.Info("Loading metadata file...");
             var metadata = new Metadata(new MemoryStream(File.ReadAllBytes(metadataFile)));
 
-            // Load the il2cpp code file (try ELF, PE and MachO)
+            logger.Info("Loading binary file...");
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
 
             IFileFormatReader stream = null;

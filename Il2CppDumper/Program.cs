@@ -43,6 +43,10 @@ namespace Il2CppDumper
                     dumper.DumpStrings("strings.txt");
                     dumper.DumpToFile("pseudo.cs");
 
+                    logger.Info("Writing methods offsets...");
+                    var methodsOffsets = new MethodsOffsetsDumper(il2cpp);
+                    methodsOffsets.DumpToFile("methods.txt");
+
                     logger.Info("Writing extracted protos...");
                     var protoDumper = new ProtoDumper(il2cpp);
                     protoDumper.DumpToFile("generated.proto");
