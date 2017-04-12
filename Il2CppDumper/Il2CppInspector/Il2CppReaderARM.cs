@@ -37,13 +37,13 @@ namespace Il2CppInspector
             if (bytes.SequenceEqual(buff))
             {
                 Image.Position = loc + 0x2c;
-                var subaddr = Image.ReadUInt32() + globalOffset;
+                var subaddr = Image.ReadUInt32() + (uint)globalOffset;
                 Image.Position = subaddr + 0x28;
-                var codeRegistration = Image.ReadUInt32() + globalOffset;
+                long codeRegistration = Image.ReadUInt32() + (uint)globalOffset;
                 Image.Position = subaddr + 0x2C;
-                var ptr = Image.ReadUInt32() + globalOffset;
+                var ptr = Image.ReadUInt32() + (uint)globalOffset;
                 Image.Position = Image.MapVATR(ptr);
-                var metadataRegistration = Image.ReadUInt32();
+                long metadataRegistration = Image.ReadUInt32();
                 return (true, codeRegistration, metadataRegistration);
             }
 
