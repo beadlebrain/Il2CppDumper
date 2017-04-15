@@ -88,7 +88,7 @@ namespace Il2CppInspector
 
         private long decodeAdrp(long pc, byte[] label)
         {
-            var pcbin = Convert.ToString((long)pc, 2);
+            var pcbin = Convert.ToString(pc, 2);
             if (pcbin.Length < 64)
             {
                 pcbin = new string(Enumerable.Repeat('0', 64 - pcbin.Length).Concat(pcbin.ToCharArray()).ToArray());

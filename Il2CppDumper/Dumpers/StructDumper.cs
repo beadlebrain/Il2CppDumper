@@ -63,8 +63,8 @@ namespace Il2CppDumper.Dumpers
                 {
                     writer.Write($"struct {pType.Name} : public Il2CppArray\n");
                     writer.Write("{\n");
-                    writer.Write($"\tALIGN_FIELD(8) {pType.ItemType}[1];\n");
-                    writer.Write("}\n");
+                    writer.Write($"\tALIGN_FIELD(8) {pType.ItemType} items;\n");
+                    writer.Write("}\n\n");
                 }
             }
         }
@@ -79,10 +79,17 @@ namespace Il2CppDumper.Dumpers
 
             writer.Write("struct Il2CppArray : public Il2CppObject\n");
             writer.Write("{\n");
-            writer.Write("\void *bounds;\n");
-            writer.Write("\tint *max_length;\n");
+            writer.Write("\tvoid *bounds;\n");
+            writer.Write("\tint max_length;\n");
             writer.Write("}\n\n");
-        }
+
+            writer.Write("struct Il2CppString\n");
+            writer.Write("{\n");
+            writer.Write("\tIl2CppObject object;\n");
+            writer.Write("\tint length;\n");
+            writer.Write("\tchar16_t *chars;\n");
+            writer.Write("}\n\n");
+    }
 
         internal void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef)
         {
@@ -168,6 +175,10 @@ namespace Il2CppDumper.Dumpers
             else if (typeName == "uint" || typeName == "ulong")
             {
                 typeName = "unsigned " + typeName.Substring(1);
+            }
+            else if (typeName == "string")
+            {
+                typeName = "Il2CppString *";
             }
             else if (typeName.StartsWith("FieldCodec`1"))
             {
